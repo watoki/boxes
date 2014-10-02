@@ -46,4 +46,17 @@ class WrapResponsesTest extends Specification {
         $this->box->thenTheResponseShouldBe('Go <a href="?other[!]=there">Two</a>');
     }
 
+    function testRecursiveWrapping() {
+        $this->box->given_Responds('one', 'One $two');
+        $this->box->given_Responds('two', 'Two $three');
+        $this->box->given_Responds('three', '<a href="there?me=you">Three</a>');
+
+        $this->box->given_Contains('one', 'two');
+        $this->box->given_Contains('two', 'three');
+
+        $this->box->whenIGetTheResponseFrom('one');
+        $this->box->thenTheResponseShouldBe(
+            'One Two <a href="?two[three][!]=there&two[three][me]=you">Three</a>');
+    }
+
 }

@@ -70,12 +70,10 @@ class Shelf {
                 }
 
                 $params = new Map();
-                if (!$target->getParameters()->isEmpty()) {
-                    $params = $target->getParameters()->copy();
-                }
                 if ($target->getPath()->toString()) {
                     $params->set(self::TARGET_KEY, $target->getPath()->toString());
                 }
+                $params->merge($target->getParameters());
 
                 $wrapped = Url::fromString('');
                 $wrapped->getParameters()->set($box, $params);
