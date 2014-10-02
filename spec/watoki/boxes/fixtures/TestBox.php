@@ -3,6 +3,7 @@ namespace spec\watoki\boxes\fixtures;
 
 use watoki\boxes\Box;
 use watoki\boxes\Shelf;
+use watoki\curir\delivery\WebRequest;
 use watoki\deli\Path;
 use watoki\deli\Responding;
 use watoki\deli\router\DynamicRouter;
@@ -38,8 +39,15 @@ class TestBox extends Box {
         $this->shelf->set($name, Path::fromString($name));
     }
 
-    public function doFoo() {
+    /**
+     * @param WebRequest $request <-
+     * @return string
+     */
+    public function doFoo(WebRequest $request) {
         $model = array();
+        foreach ($request->getArguments() as $key => $value) {
+            $model[$key] = $value;
+        }
         foreach ($this->boxes as $box) {
             $model[$box] = $this->shelf->wrap($box);
         }

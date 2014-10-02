@@ -19,7 +19,7 @@ class BoxFixture extends Fixture {
     /** @var array|TestBox[] */
     public $boxes = array();
 
-    /** @var array */
+    /** @var array|Map[] */
     public $arguments = array();
 
     public function given_Responds($boxName, $boxResponse) {
@@ -35,10 +35,15 @@ class BoxFixture extends Fixture {
             RespondingTarget::factory($this->spec->factory, $this->boxes[$target]));
     }
 
-    public function givenTheTargetArgumentsOf_Is($path, $target) {
-        $this->arguments[$path] = new Map(array(
-            Shelf::TARGET_KEY => $target
-        ));
+    public function givenTheTargetArgumentsOf_Is($box, $target) {
+        $this->given_HasTheArgument_WithValue($box, Shelf::TARGET_KEY, $target);
+    }
+
+    public function given_HasTheArgument_WithValue($box, $key, $value) {
+        if (!isset($this->arguments[$box])) {
+            $this->arguments[$box] = new Map();
+        }
+        $this->arguments[$box]->set($key, $value);
     }
 
     public function whenIGetTheResponseFrom($path) {

@@ -31,4 +31,15 @@ class UnwrapRequestsTest extends Specification {
         $this->box->thenTheResponseShouldBe('Hello Other');
     }
 
+    function testUnwrapArguments() {
+        $this->box->given_Responds('outer', 'Hello $inner');
+        $this->box->given_Responds('inner', '$one $two');
+        $this->box->given_Contains('outer', 'inner');
+        $this->box->given_HasTheArgument_WithValue('inner', 'one', 'My');
+        $this->box->given_HasTheArgument_WithValue('inner', 'two', 'World');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('Hello My World');
+    }
+
 }
