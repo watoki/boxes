@@ -60,29 +60,52 @@ class Shelf {
         $parser = new Parser($response->getBody());
 
         foreach ($parser->getNodes() as $node) {
-            if ($node instanceof Element && $node->getName() == 'a') {
-                $target = Url::fromString($node->getAttribute('href')->getValue());
-                $box = $name;
-
-                if ($node->getAttribute('target')) {
-                    $box = $node->getAttribute('target')->getValue();
-                    $node->getAttributes()->removeElement($node->getAttribute('target'));
+            if ($node instanceof Element) {
+                switch ($node->getName()){
+                    case 'a': $this->wrapLink($name, $node); break;
+                    case 'form': $this->wrapForm($name, $node); break;
                 }
-
-                $params = new Map();
-                if ($target->getPath()->toString()) {
-                    $params->set(self::TARGET_KEY, $target->getPath()->toString());
-                }
-                $params->merge($target->getParameters());
-
-                $wrapped = Url::fromString('');
-                $wrapped->getParameters()->set($box, $params);
-                $node->setAttribute('href', $wrapped->toString());
             }
         }
 
         $printer = new Printer();
         return $printer->printNodes($parser->getNodes());
+    }
+
+    private function wrapLink($name, Element $element) {
+        $target = Url::fromString($element->getAttribute('href')->getValue());
+        $wrapped = $this->wrapUrl($name, $element, $target);
+        $element->setAttribute('href', $wrapped->toString());
+    }
+
+    private function wrapForm($name, Element $element) {
+        $target = '';
+        if ($element->getAttribute('action')) {
+            $target = $element->getAttribute('action')->getValue();
+        }
+        $wrapped = $this->wrapUrl($name, $element, $target);
+        $wrapped->getParameters()->set(self::TARGET_KEY, $name);
+        $element->setAttribute('action', $wrapped->toString());
+    }
+
+    private function wrapUrl($name, Element $element, $target) {
+        $target = Url::fromString($target);
+        $box = $name;
+
+        if ($element->getAttribute('target')) {
+            $box = $element->getAttribute('target')->getValue();
+            $element->getAttributes()->removeElement($element->getAttribute('target'));
+        }
+
+        $params = new Map();
+        if ($target->getPath()->toString()) {
+            $params->set(self::TARGET_KEY, $target->getPath()->toString());
+        }
+        $params->merge($target->getParameters());
+
+        $wrapped = Url::fromString('');
+        $wrapped->getParameters()->set($box, $params);
+        return $wrapped;
     }
 
 }

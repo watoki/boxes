@@ -48,7 +48,7 @@ class WrapResponsesTest extends Specification {
 
     function testRecursiveWrapping() {
         $this->box->given_Responds('one', 'One $two');
-        $this->box->given_Responds('two', 'Two $three');
+        $this->box->given_Responds('two', '<a href="here?foo=bar">Two</a> $three');
         $this->box->given_Responds('three', '<a href="there?me=you">Three</a>');
 
         $this->box->given_Contains('one', 'two');
@@ -56,7 +56,62 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('one');
         $this->box->thenTheResponseShouldBe(
-            'One Two <a href="?two[three][!]=there&two[three][me]=you">Three</a>');
+            'One <a href="?two[!]=here&two[foo]=bar">Two</a> ' .
+            '<a href="?two[three][!]=there&two[three][me]=you">Three</a>');
+    }
+
+    function testWrapForm() {
+        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('inner',
+            '<form action="there?me=you" method="post">
+                <input name="foo" value="bar"/>
+            </form>');
+        $this->box->given_Contains('outer', 'inner');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe(
+            '<form action="?inner[!]=there&inner[me]=you&!=inner" method="post">
+                <input name="foo" value="bar"/>
+            </form>');
+    }
+
+    function testWrapBody() {
+        $this->markTestIncomplete();
+
+        $this->box->given_Responds('outer', '<html>
+            <head><title>Hello World</title></head>
+            <body><p>$inner</p></body>
+        </html>');
+        $this->box->given_Responds('inner', '<html>
+            <head><title>Ignored</title></head>
+            <body><em>Hello World</em></body>
+        </html>');
+        $this->box->given_Contains('outer', 'inner');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('<html>
+            <head><title>Hello World</title></head>
+            <body><p><em>Hello World</em></p></body>
+        </html>');
+    }
+
+    function testComplexForm() {
+        $this->markTestIncomplete();
+
+        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('inner', '<html><body>
+            <form action="here">
+                <a href="there?one=two">Click</a>
+            </form>
+        </body></html>');
+
+        $this->box->given_Contains('outer', 'inner');
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('<html><body>
+            <form action="?!=inner&inner[!]=here">
+                <a href="?inner[!]=there&inner[one]=two">Click</a>
+            </form>
+        </body></html>');
     }
 
 }
