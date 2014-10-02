@@ -19,8 +19,13 @@ class BoxFixture extends Fixture {
     /** @var array|TestBox[] */
     public $boxes = array();
 
-    /** @var array|Map[] */
-    public $arguments = array();
+    /** @var Map|Map[] */
+    public $arguments;
+
+    public function setUp() {
+        parent::setUp();
+        $this->arguments = new Map();
+    }
 
     public function given_Responds($boxName, $boxResponse) {
         $this->boxes[$boxName] = new TestBox(new Factory(), $boxResponse);
@@ -35,19 +40,27 @@ class BoxFixture extends Fixture {
             RespondingTarget::factory($this->spec->factory, $this->boxes[$target]));
     }
 
-    public function givenTheTargetArgumentsOf_Is($box, $target) {
-        $this->given_HasTheArgument_WithValue($box, Shelf::TARGET_KEY, $target);
+    public function givenTheTargetArgumentOf_Is($box, $target) {
+        $this->givenTheArgument_WithValue($box . '/' .Shelf::TARGET_KEY, $target);
     }
 
-    public function given_HasTheArgument_WithValue($box, $key, $value) {
-        if (!isset($this->arguments[$box])) {
-            $this->arguments[$box] = new Map();
+    public function givenTheArgument_WithValue($keyPath, $value) {
+        $keys = explode('/', $keyPath);
+        $last = array_pop($keys);
+
+        /** @var Map $arguments */
+        $arguments = $this->arguments;
+        foreach ($keys as $key) {
+            if (!$arguments->has($key)) {
+                $arguments->set($key, new Map());
+            }
+            $arguments = $arguments->get($key);
         }
-        $this->arguments[$box]->set($key, $value);
+        $arguments->set($last, $value);
     }
 
     public function whenIGetTheResponseFrom($path) {
-        $request = new WebRequest(Url::fromString(''), new Path(), 'foo', new Map($this->arguments));
+        $request = new WebRequest(Url::fromString(''), new Path(), 'foo', $this->arguments);
         $this->response = $this->boxes[$path]->respond($request);
     }
 
