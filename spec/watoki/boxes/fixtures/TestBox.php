@@ -1,5 +1,5 @@
 <?php
-namespace spec\watoki\boxes;
+namespace spec\watoki\boxes\fixtures;
 
 use watoki\boxes\Box;
 use watoki\boxes\Shelf;
