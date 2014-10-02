@@ -58,9 +58,16 @@ class Shelf {
 
     private function wrapResponse(WebResponse $response, $name) {
         $parser = new Parser($response->getBody());
+
         foreach ($parser->getNodes() as $node) {
             if ($node instanceof Element && $node->getName() == 'a') {
                 $target = Url::fromString($node->getAttribute('href')->getValue());
+                $box = $name;
+
+                if ($node->getAttribute('target')) {
+                    $box = $node->getAttribute('target')->getValue();
+                    $node->getAttributes()->removeElement($node->getAttribute('target'));
+                }
 
                 $params = new Map();
                 if (!$target->getParameters()->isEmpty()) {
@@ -71,10 +78,11 @@ class Shelf {
                 }
 
                 $wrapped = Url::fromString('');
-                $wrapped->getParameters()->set($name, $params);
+                $wrapped->getParameters()->set($box, $params);
                 $node->setAttribute('href', $wrapped->toString());
             }
         }
+
         $printer = new Printer();
         return $printer->printNodes($parser->getNodes());
     }

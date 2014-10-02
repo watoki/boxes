@@ -37,4 +37,13 @@ class WrapResponsesTest extends Specification {
         $this->box->thenTheResponseShouldBe('Go <a href="?inner[foo]=bar">Here</a>');
     }
 
+    function testLinkTargetsOtherBox() {
+        $this->box->given_Responds('inner', '<a href="there" target="other">Two</a>');
+        $this->box->given_Responds('outer', 'Go $inner');
+        $this->box->given_Contains('outer', 'inner');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('Go <a href="?other[!]=there">Two</a>');
+    }
+
 }
