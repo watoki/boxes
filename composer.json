@@ -1,0 +1,30 @@
+{
+    "name": "watoki/boxes",
+    "description": "Web delivery system for compositional resources for PHP",
+    "keywords": ["web", "delivery", "components", "watoki"],
+    "homepage": "http://github.com/watoki/boxes",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nikolas Martens",
+            "email": "Nikolas.M@rtens.org",
+            "homepage": "http://rtens.org"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+		"watoki/factory": "*",
+        "watoki/curir": "*"
+    },
+    "require-dev": {
+        "watoki/scrut": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "watoki\\boxes": "src/",
+            "spec\\watoki\\boxes": ""
+        }
+    },
+    "minimum-stability": "dev"
+}
