@@ -4,12 +4,8 @@ namespace watoki\boxes;
 use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
-use watoki\curir\protocol\Url;
 use watoki\deli\Path;
 use watoki\deli\Router;
-use watoki\dom\Element;
-use watoki\dom\Parser;
-use watoki\dom\Printer;
 
 class Shelf {
 
@@ -53,80 +49,8 @@ class Shelf {
     }
 
     public function wrap($name) {
-        return $this->wrapResponse($this->responses[$name], $name);
-    }
-
-    private function wrapResponse(WebResponse $response, $name) {
-        $parser = new Parser($response->getBody());
-
-        $body = $this->findElement($parser->getRoot(), 'html/body');
-        if (!$body) {
-            $body = $parser->getRoot();
-        }
-        $this->wrapChildren($name, $body);
-
-        $printer = new Printer();
-        return $printer->printNodes($body->getChildren());
-    }
-
-    private function wrapChildren($name, Element $element) {
-        foreach ($element->getChildElements() as $child) {
-            switch ($child->getName()) {
-                case 'a':
-                    $this->wrapLink($name, $child);
-                    break;
-                case 'form':
-                    $this->wrapForm($name, $child);
-                    break;
-            }
-            $this->wrapChildren($name, $child);
-        }
-    }
-
-    private function findElement(Element $in, $path) {
-        foreach (explode('/', $path) as $name) {
-            if (!$in) {
-                return null;
-            }
-            $in = $in->findChildElement($name);
-        }
-        return $in;
-    }
-
-    private function wrapLink($name, Element $element) {
-        $target = Url::fromString($element->getAttribute('href')->getValue());
-        $wrapped = $this->wrapUrl($name, $element, $target);
-        $element->setAttribute('href', $wrapped->toString());
-    }
-
-    private function wrapForm($name, Element $element) {
-        $target = '';
-        if ($element->getAttribute('action')) {
-            $target = $element->getAttribute('action')->getValue();
-        }
-        $wrapped = $this->wrapUrl($name, $element, $target);
-        $wrapped->getParameters()->set(self::TARGET_KEY, $name);
-        $element->setAttribute('action', $wrapped->toString());
-    }
-
-    private function wrapUrl($name, Element $element, $target) {
-        $target = Url::fromString($target);
-        $box = $name;
-
-        if ($element->getAttribute('target')) {
-            $box = $element->getAttribute('target')->getValue();
-            $element->getAttributes()->removeElement($element->getAttribute('target'));
-        }
-
-        $params = new Map();
-        if ($target->getPath()->toString()) {
-            $params->set(self::TARGET_KEY, $target->getPath()->toString());
-        }
-        $params->merge($target->getParameters());
-
-        $wrapped = Url::fromString('');
-        $wrapped->getParameters()->set($box, $params);
-        return $wrapped;
+        $wrapper = new Wrapper($name);
+        return $wrapper->wrap($this->responses[$name]);
     }
 
 }
