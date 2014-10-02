@@ -2,6 +2,7 @@
 namespace watoki\boxes;
 
 use watoki\collections\Map;
+use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
 use watoki\curir\protocol\Url;
 use watoki\dom\Element;
@@ -9,6 +10,13 @@ use watoki\dom\Parser;
 use watoki\dom\Printer;
 
 class Wrapper {
+
+    private static $formElements = array(
+        'input',
+        'textarea',
+        'button',
+        'select'
+    );
 
     private $name;
 
@@ -67,6 +75,26 @@ class Wrapper {
         $wrapped = $this->wrapUrl($element, $target);
         $wrapped->getParameters()->set(Shelf::TARGET_KEY, $this->name);
         $element->setAttribute('action', $wrapped->toString());
+
+        $this->wrapFormElements($element);
+    }
+
+    private function wrapFormElements(Element $in) {
+        foreach ($in->getChildElements() as $child) {
+            if (in_array($child->getName(), self::$formElements)) {
+                $name = $child->getAttribute('name');
+                if (!$name || $name->getValue() == WebRequest::$METHOD_KEY) {
+                    continue;
+                }
+
+                $url = Url::fromString('?' . $name->getValue() . '=0');
+                $wrapped = Url::fromString('');
+                $wrapped->getParameters()->set($this->name, $url->getParameters());
+
+                $child->setAttribute('name', substr($wrapped->toString(), 1, -2));
+            }
+            $this->wrapFormElements($child);
+        }
     }
 
     private function wrapUrl(Element $element, $target) {

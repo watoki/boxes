@@ -60,19 +60,34 @@ class WrapResponsesTest extends Specification {
             '<a href="?two[three][!]=there&two[three][me]=you">Three</a>');
     }
 
-    function testWrapForm() {
+    function testFormWithAction() {
         $this->box->given_Responds('outer', '$inner');
         $this->box->given_Responds('inner', '
             <form action="there?me=you" method="post">
                 <input name="foo" value="bar"/>
+                <textarea name="foo[one]"></textarea>
+                <select name="foo[two]"></select>
+                <button name="do" value="that">Go</button>
             </form>');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('
             <form action="?inner[!]=there&inner[me]=you&!=inner" method="post">
-                <input name="foo" value="bar"/>
+                <input name="inner[foo]" value="bar"/>
+                <textarea name="inner[foo][one]"></textarea>
+                <select name="inner[foo][two]"></select>
+                <button name="do" value="that">Go</button>
             </form>');
+    }
+
+    function testFormWithoutAction() {
+        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('inner', '<form method="post"></form>');
+        $this->box->given_Contains('outer', 'inner');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('<form method="post" action="?!=inner"></form>');
     }
 
     function testWrapBody() {
@@ -120,6 +135,14 @@ class WrapResponsesTest extends Specification {
                 <div><form action="?inner[!]=here&!=inner">
                     <a href="?inner[!]=there&inner[one]=two">Click</a>
                 </form></div>');
+    }
+
+    function testAssets() {
+        $this->markTestIncomplete('Images and css and scripts');
+    }
+
+    function testMergeHead() {
+        $this->markTestIncomplete('All but title I guess');
     }
 
 }
