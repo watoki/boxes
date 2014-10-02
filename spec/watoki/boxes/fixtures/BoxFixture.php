@@ -65,7 +65,7 @@ class BoxFixture extends Fixture {
     }
 
     public function thenTheResponseShouldBe($body) {
-        $this->spec->assertEquals($body, $this->response->getBody());
+        $this->spec->assertEquals(trim($body), trim($this->response->getBody()));
     }
 
 } 

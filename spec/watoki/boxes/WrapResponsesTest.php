@@ -105,23 +105,21 @@ class WrapResponsesTest extends Specification {
         $this->box->thenTheResponseShouldBe('Hello World');
     }
 
-    function testComplexForm() {
-        $this->markTestIncomplete();
-
+    function testComplexDom() {
         $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('inner', '<html><body>
-            <form action="here">
-                <a href="there?one=two">Click</a>
-            </form>
-        </body></html>');
+        $this->box->given_Responds('inner', '
+            <html><body><p>Hello</p>
+                <div><form action="here">
+                    <a href="there?one=two">Click</a>
+                </form></div>
+            </body></html>');
 
         $this->box->given_Contains('outer', 'inner');
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('<html><body>
-            <form action="?!=inner&inner[!]=here">
-                <a href="?inner[!]=there&inner[one]=two">Click</a>
-            </form>
-        </body></html>');
+        $this->box->thenTheResponseShouldBe('<p>Hello</p>
+                <div><form action="?inner[!]=here&!=inner">
+                    <a href="?inner[!]=there&inner[one]=two">Click</a>
+                </form></div>');
     }
 
 }

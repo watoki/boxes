@@ -63,19 +63,24 @@ class Shelf {
         if (!$body) {
             $body = $parser->getRoot();
         }
-        foreach ($body->getChildElements() as $node) {
-                switch ($node->getName()) {
-                    case 'a':
-                        $this->wrapLink($name, $node);
-                        break;
-                    case 'form':
-                        $this->wrapForm($name, $node);
-                        break;
-                }
-        }
+        $this->wrapChildren($name, $body);
 
         $printer = new Printer();
         return $printer->printNodes($body->getChildren());
+    }
+
+    private function wrapChildren($name, Element $element) {
+        foreach ($element->getChildElements() as $child) {
+            switch ($child->getName()) {
+                case 'a':
+                    $this->wrapLink($name, $child);
+                    break;
+                case 'form':
+                    $this->wrapForm($name, $child);
+                    break;
+            }
+            $this->wrapChildren($name, $child);
+        }
     }
 
     private function findElement(Element $in, $path) {
