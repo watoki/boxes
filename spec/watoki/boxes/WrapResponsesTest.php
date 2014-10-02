@@ -62,37 +62,47 @@ class WrapResponsesTest extends Specification {
 
     function testWrapForm() {
         $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('inner',
-            '<form action="there?me=you" method="post">
+        $this->box->given_Responds('inner', '
+            <form action="there?me=you" method="post">
                 <input name="foo" value="bar"/>
             </form>');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe(
-            '<form action="?inner[!]=there&inner[me]=you&!=inner" method="post">
+        $this->box->thenTheResponseShouldBe('
+            <form action="?inner[!]=there&inner[me]=you&!=inner" method="post">
                 <input name="foo" value="bar"/>
             </form>');
     }
 
     function testWrapBody() {
-        $this->markTestIncomplete();
-
-        $this->box->given_Responds('outer', '<html>
-            <head><title>Hello World</title></head>
-            <body><p>$inner</p></body>
-        </html>');
-        $this->box->given_Responds('inner', '<html>
-            <head><title>Ignored</title></head>
-            <body><em>Hello World</em></body>
-        </html>');
+        $this->box->given_Responds('outer', '
+            <html>
+                <head><title>Hello World</title></head>
+                <body><p>$inner</p></body>
+            </html>');
+        $this->box->given_Responds('inner', '
+            <html>
+                <head><title>Ignored</title></head>
+                <body><em>Hello World</em></body>
+            </html>');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('<html>
-            <head><title>Hello World</title></head>
-            <body><p><em>Hello World</em></p></body>
-        </html>');
+        $this->box->thenTheResponseShouldBe('
+            <html>
+                <head><title>Hello World</title></head>
+                <body><p><em>Hello World</em></p></body>
+            </html>');
+    }
+
+    function testAlwaysUnpackBody() {
+        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('inner', '<html><body>Hello World</body></html>');
+
+        $this->box->given_Contains('outer', 'inner');
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('Hello World');
     }
 
     function testComplexForm() {

@@ -59,17 +59,33 @@ class Shelf {
     private function wrapResponse(WebResponse $response, $name) {
         $parser = new Parser($response->getBody());
 
-        foreach ($parser->getNodes() as $node) {
-            if ($node instanceof Element) {
-                switch ($node->getName()){
-                    case 'a': $this->wrapLink($name, $node); break;
-                    case 'form': $this->wrapForm($name, $node); break;
+        $body = $this->findElement($parser->getRoot(), 'html/body');
+        if (!$body) {
+            $body = $parser->getRoot();
+        }
+        foreach ($body->getChildElements() as $node) {
+                switch ($node->getName()) {
+                    case 'a':
+                        $this->wrapLink($name, $node);
+                        break;
+                    case 'form':
+                        $this->wrapForm($name, $node);
+                        break;
                 }
-            }
         }
 
         $printer = new Printer();
-        return $printer->printNodes($parser->getNodes());
+        return $printer->printNodes($body->getChildren());
+    }
+
+    private function findElement(Element $in, $path) {
+        foreach (explode('/', $path) as $name) {
+            if (!$in) {
+                return null;
+            }
+            $in = $in->findChildElement($name);
+        }
+        return $in;
     }
 
     private function wrapLink($name, Element $element) {
