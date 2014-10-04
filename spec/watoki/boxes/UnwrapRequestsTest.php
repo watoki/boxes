@@ -56,7 +56,20 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testMethodFindsTarget() {
-        $this->markTestIncomplete();
+        $this->box->given_Responds('root', 'Hello $foo $bar');
+        $this->box->given_Responds('foo', 'my');
+        $this->box->given_Responds('bar', 'dear $baz');
+        $this->box->given_Responds('baz', 'World');
+
+        $this->box->given_Contains('root', 'foo');
+        $this->box->given_Contains('root', 'bar');
+        $this->box->given_Contains('bar', 'baz');
+
+        $this->box->givenTheMethodIs('bar');
+        $this->box->givenTheArgument_WithValue('bar/baz/do', 'foo');
+
+        $this->box->whenIGetTheResponseFrom('root');
+        $this->box->thenTheResponseShouldBe('Hello my dear foo!');
     }
 
 }

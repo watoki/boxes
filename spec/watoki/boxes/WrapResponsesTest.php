@@ -63,7 +63,7 @@ class WrapResponsesTest extends Specification {
     function testFormWithAction() {
         $this->box->given_Responds('outer', '$inner');
         $this->box->given_Responds('inner', '
-            <form action="there?me=you" method="post">
+            <form action="there?me=you" method="get">
                 <input name="foo" value="bar"/>
                 <textarea name="foo[one]"></textarea>
                 <select name="foo[two]"></select>
@@ -73,21 +73,21 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('
-            <form action="?inner[!]=there&inner[me]=you&!=inner" method="post">
+            <form action="?inner[!]=there&inner[me]=you&inner[do]=get" method="get">
                 <input name="inner[foo]" value="bar"/>
                 <textarea name="inner[foo][one]"></textarea>
                 <select name="inner[foo][two]"></select>
-                <button name="do" value="that">Go</button>
+                <button name="inner[do]" value="that">Go</button>
             </form>');
     }
 
-    function testFormWithoutAction() {
+    function testFormWithoutActionAndMethod() {
         $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('inner', '<form method="post"></form>');
+        $this->box->given_Responds('inner', '<form></form>');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('<form method="post" action="?!=inner"></form>');
+        $this->box->thenTheResponseShouldBe('<form action="?inner[do]=post"></form>');
     }
 
     function testWrapBody() {
@@ -132,7 +132,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('<p>Hello</p>
-                <div><form action="?inner[!]=here&!=inner">
+                <div><form action="?inner[!]=here&inner[do]=post">
                     <a href="?inner[!]=there&inner[one]=two">Click</a>
                 </form></div>');
     }

@@ -29,6 +29,14 @@ class Shelf {
     }
 
     public function unwrap(WebRequest $request) {
+        if ($request->getArguments()->has(WebRequest::$METHOD_KEY)) {
+            $method = $request->getArguments()->get(WebRequest::$METHOD_KEY);
+            $request->setMethod($method);
+            $request->getArguments()->remove(WebRequest::$METHOD_KEY);
+        } else {
+            $request->setMethod(WebRequest::METHOD_GET);
+        }
+
         foreach ($this->boxes as $name => $path) {
             $unwrapped = $request->copy();
             $unwrapped->setTarget($path);
@@ -38,7 +46,8 @@ class Shelf {
                 /** @var Map $arguments */
                 $arguments = $request->getArguments()->get($name);
                 if ($arguments->has(self::TARGET_KEY)) {
-                    $unwrapped->setTarget(Path::fromString($arguments->get(self::TARGET_KEY)));
+                    $target = $arguments->get(self::TARGET_KEY);
+                    $unwrapped->setTarget(Path::fromString($target));
                     $arguments->remove(self::TARGET_KEY);
                 }
                 $unwrapped->getArguments()->merge($arguments);
@@ -49,6 +58,9 @@ class Shelf {
     }
 
     public function wrap($name) {
+        if (!$this->responses) {
+            throw new \Exception("The Request needs to be unwrapped first.");
+        }
         $wrapper = new Wrapper($name);
         return $wrapper->wrap($this->responses[$name]);
     }

@@ -19,12 +19,12 @@ class BoxFixture extends Fixture {
     /** @var array|TestBox[] */
     public $boxes = array();
 
-    /** @var Map|Map[] */
-    public $arguments;
+    /** @var WebRequest */
+    private $request;
 
     public function setUp() {
         parent::setUp();
-        $this->arguments = new Map();
+        $this->request = new WebRequest(Url::fromString(''), new Path(), 'get');
     }
 
     public function given_Responds($boxName, $boxResponse) {
@@ -48,8 +48,7 @@ class BoxFixture extends Fixture {
         $keys = explode('/', $keyPath);
         $last = array_pop($keys);
 
-        /** @var Map $arguments */
-        $arguments = $this->arguments;
+        $arguments = $this->request->getArguments();
         foreach ($keys as $key) {
             if (!$arguments->has($key)) {
                 $arguments->set($key, new Map());
@@ -59,9 +58,12 @@ class BoxFixture extends Fixture {
         $arguments->set($last, $value);
     }
 
+    public function givenTheMethodIs($method) {
+        $this->request->setMethod($method);
+    }
+
     public function whenIGetTheResponseFrom($path) {
-        $request = new WebRequest(Url::fromString(''), new Path(), 'foo', $this->arguments);
-        $this->response = $this->boxes[$path]->respond($request);
+        $this->response = $this->boxes[$path]->respond($this->request);
     }
 
     public function thenTheResponseShouldBe($body) {

@@ -43,7 +43,7 @@ class TestBox extends Box {
      * @param WebRequest $request <-
      * @return string
      */
-    public function doFoo(WebRequest $request) {
+    public function doGet(WebRequest $request) {
         $model = array();
         foreach ($request->getArguments() as $key => $value) {
             $model[$key] = $value;
@@ -52,6 +52,10 @@ class TestBox extends Box {
             $model[$box] = $this->shelf->wrap($box);
         }
         return $this->render($model);
+    }
+
+    public function doFoo() {
+        return 'foo!';
     }
 
     private function render($model) {

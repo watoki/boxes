@@ -72,8 +72,15 @@ class Wrapper {
         if ($element->getAttribute('action')) {
             $target = $element->getAttribute('action')->getValue();
         }
+
+        $method = WebRequest::METHOD_POST;
+        if ($element->getAttribute('method')) {
+            $method = $element->getAttribute('method')->getValue();
+        }
+
         $wrapped = $this->wrapUrl($element, $target);
-        $wrapped->getParameters()->set(Shelf::TARGET_KEY, $this->name);
+
+        $wrapped->getParameters()->one()->set(WebRequest::$METHOD_KEY, $method);
         $element->setAttribute('action', $wrapped->toString());
 
         $this->wrapFormElements($element);
@@ -83,7 +90,7 @@ class Wrapper {
         foreach ($in->getChildElements() as $child) {
             if (in_array($child->getName(), self::$formElements)) {
                 $name = $child->getAttribute('name');
-                if (!$name || $name->getValue() == WebRequest::$METHOD_KEY) {
+                if (!$name) {
                     continue;
                 }
 
