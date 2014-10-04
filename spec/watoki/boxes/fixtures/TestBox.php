@@ -42,7 +42,7 @@ class TestBox extends Box {
         $this->shelf->set($name, $request);
     }
 
-    public function addToCollection($name, Box $box, $args) {
+    public function addToList($name, Box $box, $args) {
         $this->addBox($name, $box);
 
         if (!isset($this->collections[$name])) {

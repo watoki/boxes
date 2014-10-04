@@ -40,7 +40,7 @@ class BoxFixture extends Fixture {
     }
 
     public function given_ContainsA_With($outer, $inner, $args) {
-        $this->boxes[$outer]->addToCollection($inner, $this->boxes[$inner], $args);
+        $this->boxes[$outer]->addToList($inner, $this->boxes[$inner], $args);
     }
 
     public function givenAPathFrom_To($start, $target) {

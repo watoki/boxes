@@ -223,7 +223,7 @@ class WrapResponsesTest extends Specification {
         $this->box->thenTheResponseShouldBe('Hello World');
     }
 
-    function testBoxCollection() {
+    function testBoxList() {
         $this->box->given_Responds('outer', '$inner');
         $this->box->given_Responds('inner', '<a href="?foo=bar">$name</a>');
         $this->box->given_ContainsA_With('outer', 'inner', array('name' => 'One'));

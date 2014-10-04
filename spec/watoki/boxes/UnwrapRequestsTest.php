@@ -72,4 +72,20 @@ class UnwrapRequestsTest extends Specification {
         $this->box->thenTheResponseShouldBe('Hello my dear foo!');
     }
 
+    function testBoxList() {
+        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('inner', '$foo');
+
+        $this->box->given_ContainsA_With('outer', 'inner', array('foo' => 'bar'));
+        $this->box->given_ContainsA_With('outer', 'inner', array('foo' => 'bar'));
+        $this->box->given_ContainsA_With('outer', 'inner', array('foo' => 'bar'));
+
+        $this->box->givenTheRequestArgument_Is('inner/0/foo', 'One');
+        $this->box->givenTheRequestArgument_Is('inner/1/foo', 'Two');
+        $this->box->givenTheRequestArgument_Is('inner/2/foo', 'Three');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('OneTwoThree');
+    }
+
 }
