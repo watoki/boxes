@@ -2,10 +2,14 @@
 namespace watoki\boxes;
 
 use watoki\collections\Map;
+use watoki\collections\Set;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
 use watoki\deli\Path;
 use watoki\deli\Router;
+use watoki\dom\Element;
+use watoki\dom\Parser;
+use watoki\dom\Printer;
 
 class Shelf {
 
@@ -26,8 +30,12 @@ class Shelf {
     /** @var WebRequest */
     private $originalRequest;
 
+    /** @var Set|Element[] */
+    private $headElements;
+
     public function __construct(Router $router) {
         $this->router = $router;
+        $this->headElements = new Set();
     }
 
     public function set($name, $defaultPath) {
@@ -68,8 +76,42 @@ class Shelf {
         if (!$this->responses) {
             throw new \Exception("The Request needs to be unboxed first.");
         }
-        $wrapper = new Boxer($name, $this->paths[$name], $this->originalRequest->getArguments());
-        return $wrapper->wrap($this->responses[$name]);
+        $boxer = new Boxer($name, $this->paths[$name], $this->originalRequest->getArguments());
+        $box = $boxer->box($this->responses[$name]);
+        $this->headElements->putAll($boxer->getHeadElements());
+        return $box;
+    }
+
+    public function mergeHeaders(WebResponse $into) {
+        $parser = new Parser($into->getBody());
+        $html = $parser->findElement('html');
+        if ($html && $html->findChildElement('head')) {
+            $head = $html->findChildElement('head');
+
+            foreach ($this->headElements as $new) {
+                if (!$this->isAlreadyIn($new, $head->getChildElements())) {
+                    $head->getChildren()->append($new);
+                }
+            }
+
+            $printer = new Printer();
+            $into->setBody($printer->printNodes($parser->getNodes()));
+        }
+        return $into;
+    }
+
+    /**
+     * @param Element $element
+     * @param Element[] $in
+     * @return bool
+     */
+    private function isAlreadyIn(Element $element, $in) {
+        foreach ($in as $old) {
+            if ($old->equals($element)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

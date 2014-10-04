@@ -2,6 +2,7 @@
 namespace watoki\boxes;
 
 use watoki\collections\Map;
+use watoki\collections\Set;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
 use watoki\curir\protocol\Url;
@@ -19,6 +20,10 @@ class Boxer {
         'select'
     );
 
+    private static $ignoredHeadElements = array(
+        'title'
+    );
+
     /** @var string */
     private $name;
 
@@ -28,23 +33,41 @@ class Boxer {
     /** @var \watoki\deli\Path */
     private $path;
 
+    /** @var Set */
+    private $headElements;
+
     function __construct($name, Path $path, Map $state) {
         $this->name = $name;
         $this->path = $path;
         $this->state = $state;
+        $this->headElements = new Set();
     }
 
-    public function wrap(WebResponse $response) {
+    public function box(WebResponse $response) {
         $parser = new Parser($response->getBody());
+        $root = $parser->getRoot();
 
-        $body = $this->findElement($parser->getRoot(), 'html/body');
+        $body = $this->findElement($root, 'html/body');
         if (!$body) {
-            $body = $parser->getRoot();
+            $body = $root;
         }
         $this->wrapChildren($body);
 
+        $head = $this->findElement($root, 'html/head');
+        if ($head) {
+            foreach ($head->getChildElements() as $headElement) {
+                if (!in_array($headElement->getName(), self::$ignoredHeadElements)) {
+                    $this->headElements->put($headElement);
+                }
+            }
+        }
+
         $printer = new Printer();
         return $printer->printNodes($body->getChildren());
+    }
+
+    public function getHeadElements() {
+        return $this->headElements;
     }
 
     private function wrapChildren(Element $element) {

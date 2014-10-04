@@ -28,7 +28,8 @@ class Box extends Container {
             $request = new BoxedRequest($request);
         }
         $this->shelf->unbox($request);
-        return parent::respond($request);
+        $response = parent::respond($request);
+        return $this->shelf->mergeHeaders($response);
     }
 
 }

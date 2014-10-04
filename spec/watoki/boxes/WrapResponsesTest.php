@@ -183,8 +183,6 @@ class WrapResponsesTest extends Specification {
     }
 
     function testMergeHead() {
-        $this->markTestIncomplete();
-
         $this->box->given_Responds('outer', '
             <html>
                 <head>
@@ -212,8 +210,7 @@ class WrapResponsesTest extends Specification {
                     <title>I stay</title>
                     <script src="outer/script.js"/>
                     <script src="duplicate.js"/>
-                    <script src="inner/script.js"/>
-                </head>
+                <script src="inner/script.js"/></head>
             </html>');
     }
 
