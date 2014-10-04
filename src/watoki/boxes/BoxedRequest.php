@@ -1,23 +1,33 @@
 <?php
 namespace watoki\boxes;
 
+use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
+use watoki\curir\protocol\Url;
+use watoki\deli\Path;
 
 class BoxedRequest extends WebRequest {
 
-    /** @var WebRequest */
+    /** @var null|WebRequest */
     private $originalRequest;
 
-    public function __construct(WebRequest $originalRequest) {
+    public function __construct(Path $target, $method = WebRequest::METHOD_GET, Map $arguments = null) {
         parent::__construct(
-            $originalRequest->getContext(),
-            $originalRequest->getTarget()->copy(),
-            WebRequest::METHOD_GET,
-            $originalRequest->getArguments()->copy(),
-            $originalRequest->getFormats()->copy(),
-            $originalRequest->getHeaders()->copy()
+            Url::fromString(''),
+            $target,
+            $method,
+            $arguments ? : new Map()
         );
-        $this->originalRequest = $originalRequest;
+    }
+
+    public static function fromRequest(WebRequest $request) {
+        $boxed = new BoxedRequest(
+            $request->getTarget()->copy(),
+            WebRequest::METHOD_GET,
+            $request->getArguments()->copy()
+        );
+        $boxed->setOriginalRequest($request);
+        return $boxed;
     }
 
     /**
@@ -27,11 +37,26 @@ class BoxedRequest extends WebRequest {
         return $this->originalRequest;
     }
 
+    /**
+     * @return BoxedRequest
+     */
     public function copy() {
-        $copy = new BoxedRequest($this);
-        $copy->setMethod($this->getMethod());
-        $copy->originalRequest = $this->originalRequest;
+        $copy = new BoxedRequest(
+            $this->getTarget()->copy(),
+            $this->getMethod(),
+            $this->getArguments()->copy()
+        );
+        if ($this->originalRequest) {
+            $copy->setOriginalRequest($this->originalRequest);
+        }
         return $copy;
+    }
+
+    public function setOriginalRequest(WebRequest $originalRequest) {
+        $this->originalRequest = $originalRequest;
+        $this->setContext($originalRequest->getContext());
+        $this->getFormats()->insertAll($originalRequest->getFormats(), 0);
+        $this->getHeaders()->merge($originalRequest->getHeaders());
     }
 
 } 

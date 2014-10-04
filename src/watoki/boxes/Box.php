@@ -25,7 +25,7 @@ class Box extends Container {
      */
     public function respond(Request $request) {
         if (!($request instanceof BoxedRequest)) {
-            $request = new BoxedRequest($request);
+            $request = BoxedRequest::fromRequest($request);
         }
         $this->shelf->unbox($request);
         $response = parent::respond($request);
