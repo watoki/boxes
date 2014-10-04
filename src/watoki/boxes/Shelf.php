@@ -20,6 +20,9 @@ class Shelf {
     /** @var array|Path[] default paths indexed by box name */
     private $boxes = array();
 
+    /** @var array|Path[] paths used for each box */
+    private $paths = array();
+
     /** @var WebRequest */
     private $originalRequest;
 
@@ -35,6 +38,8 @@ class Shelf {
         $this->originalRequest = $request->getOriginalRequest();
 
         foreach ($this->boxes as $name => $path) {
+            $this->paths[$name] = $path;
+
             $unboxed = $request->copy();
             $unboxed->setTarget($path);
             $unboxed->getArguments()->clear();
@@ -43,9 +48,9 @@ class Shelf {
                 /** @var Map $arguments */
                 $arguments = $request->getArguments()->get($name);
                 if ($arguments->has(self::TARGET_KEY)) {
-                    $target = $arguments->get(self::TARGET_KEY);
-                    $unboxed->setTarget(Path::fromString($target));
-//                    $arguments->remove(self::TARGET_KEY);
+                    $target = Path::fromString($arguments->get(self::TARGET_KEY));
+                    $this->paths[$name] = $target;
+                    $unboxed->setTarget($target);
                 }
                 if ($arguments->has(WebRequest::$METHOD_KEY)) {
                     $method = $arguments->get(WebRequest::$METHOD_KEY);
@@ -63,7 +68,7 @@ class Shelf {
         if (!$this->responses) {
             throw new \Exception("The Request needs to be unwrapped first.");
         }
-        $wrapper = new Boxer($name, $this->originalRequest->getArguments());
+        $wrapper = new Boxer($name, $this->paths[$name], $this->originalRequest->getArguments());
         return $wrapper->wrap($this->responses[$name]);
     }
 

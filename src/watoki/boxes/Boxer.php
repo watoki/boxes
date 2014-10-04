@@ -5,6 +5,7 @@ use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
 use watoki\curir\protocol\Url;
+use watoki\deli\Path;
 use watoki\dom\Element;
 use watoki\dom\Parser;
 use watoki\dom\Printer;
@@ -24,8 +25,12 @@ class Boxer {
     /** @var \watoki\collections\Map */
     private $state;
 
-    function __construct($name, Map $state) {
+    /** @var \watoki\deli\Path */
+    private $path;
+
+    function __construct($name, Path $path, Map $state) {
         $this->name = $name;
+        $this->path = $path;
         $this->state = $state;
     }
 
@@ -50,6 +55,13 @@ class Boxer {
                     break;
                 case 'form':
                     $this->wrapForm($child);
+                    break;
+                case 'link':
+                    $this->wrapAsset($child, 'href');
+                    break;
+                case 'script':
+                case 'img':
+                    $this->wrapAsset($child, 'src');
                     break;
             }
             $this->wrapChildren($child);
@@ -128,5 +140,21 @@ class Boxer {
         $wrapped->getParameters()->merge($this->state);
         $wrapped->getParameters()->set($box, $params);
         return $wrapped;
+    }
+
+    private function wrapAsset(Element $element, $attributeName) {
+        $attribute = $element->getAttribute($attributeName);
+        if (!$attribute) {
+            return;
+        }
+        $url = Url::fromString($attribute->getValue());
+        if ($url->isAbsolute()) {
+            return;
+        }
+        $path = $url->getPath();
+        $path->insertAll($this->path, 0);
+
+        $url->setPath($path);
+        $element->setAttribute($attributeName, $url->toString());
     }
 }

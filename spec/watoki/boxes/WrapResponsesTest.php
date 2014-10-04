@@ -159,11 +159,62 @@ class WrapResponsesTest extends Specification {
     }
 
     function testAssets() {
-        $this->markTestIncomplete('Images and css and scripts');
+        $this->box->given_Responds('inner', 'not me');
+        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('other', '
+            <link href="some/favico.png" rel="icon" type="image/png"/>
+            <link href="../my/styles.css" rel="stylesheet"/>
+            <script src="some/script.js"/>
+            <script src="/absolute/path.js"/>
+            <img src="some/pic.jpg"/>');
+
+        $this->box->given_Contains('outer', 'inner');
+
+        $this->box->givenAPathFrom_To('outer', 'other');
+        $this->box->givenTheTargetArgumentOf_Is('inner', 'other');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('
+            <link href="other/some/favico.png" rel="icon" type="image/png"/>
+            <link href="my/styles.css" rel="stylesheet"/>
+            <script src="other/some/script.js"/>
+            <script src="/absolute/path.js"/>
+            <img src="other/some/pic.jpg"/>');
     }
 
     function testMergeHead() {
-        $this->markTestIncomplete('All but title I guess');
+        $this->markTestIncomplete();
+
+        $this->box->given_Responds('outer', '
+            <html>
+                <head>
+                    <title>I stay</title>
+                    <script src="outer/script.js"/>
+                    <script src="duplicate.js"/>
+                </head>
+            </html>
+        ');
+        $this->box->given_Responds('inner', '
+            <html>
+                <head>
+                    <title>I am ignored</title>
+                    <script src="script.js"/>
+                    <script src="../duplicate.js"/>
+                </head>
+            </html>');
+
+        $this->box->given_Contains('outer', 'inner');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('
+            <html>
+                <head>
+                    <title>I stay</title>
+                    <script src="outer/script.js"/>
+                    <script src="duplicate.js"/>
+                    <script src="inner/script.js"/>
+                </head>
+            </html>');
     }
 
 }
