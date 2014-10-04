@@ -137,6 +137,27 @@ class WrapResponsesTest extends Specification {
                 </form></div>');
     }
 
+    function testKeepState() {
+        $this->box->given_Responds('a', '<a href="here?argA=X">A</a>');
+        $this->box->given_Responds('b', '<a href="there?argB=Y">B</a>');
+        $this->box->given_Responds('o', '$a $b');
+
+        $this->box->given_Contains('o', 'a');
+        $this->box->given_Contains('o', 'b');
+
+        $this->box->givenTheTargetArgumentOf_Is('a', 'a');
+        $this->box->givenTheTargetArgumentOf_Is('b', 'b');
+        $this->box->givenTheRequestArgument_Is('a/argA', 'A');
+        $this->box->givenTheRequestArgument_Is('a/arg2', '2');
+        $this->box->givenTheRequestArgument_Is('a/aa/arg', 'AA');
+        $this->box->givenTheRequestArgument_Is('b/argB', 'B');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBe(
+            '<a href="?a[!]=here&a[argA]=X&b[!]=b&b[argB]=B">A</a> ' .
+            '<a href="?a[!]=a&a[argA]=A&a[arg2]=2&a[aa][arg]=AA&b[!]=there&b[argB]=Y">B</a>');
+    }
+
     function testAssets() {
         $this->markTestIncomplete('Images and css and scripts');
     }

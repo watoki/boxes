@@ -49,7 +49,7 @@ class TestBox extends Box {
             $model[$key] = $value;
         }
         foreach ($this->boxes as $box) {
-            $model[$box] = $this->shelf->wrap($box);
+            $model[$box] = $this->shelf->box($box);
         }
         return $this->render($model);
     }

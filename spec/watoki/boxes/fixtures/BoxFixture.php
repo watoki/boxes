@@ -41,10 +41,10 @@ class BoxFixture extends Fixture {
     }
 
     public function givenTheTargetArgumentOf_Is($box, $target) {
-        $this->givenTheArgument_WithValue($box . '/' .Shelf::TARGET_KEY, $target);
+        $this->givenTheRequestArgument_Is($box . '/' .Shelf::TARGET_KEY, $target);
     }
 
-    public function givenTheArgument_WithValue($keyPath, $value) {
+    public function givenTheRequestArgument_Is($keyPath, $value) {
         $keys = explode('/', $keyPath);
         $last = array_pop($keys);
 

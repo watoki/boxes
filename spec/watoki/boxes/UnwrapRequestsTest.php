@@ -35,8 +35,8 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Responds('outer', 'Hello $inner');
         $this->box->given_Responds('inner', '$one $two');
         $this->box->given_Contains('outer', 'inner');
-        $this->box->givenTheArgument_WithValue('inner/one', 'My');
-        $this->box->givenTheArgument_WithValue('inner/two', 'World');
+        $this->box->givenTheRequestArgument_Is('inner/one', 'My');
+        $this->box->givenTheRequestArgument_Is('inner/two', 'World');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('Hello My World');
@@ -48,8 +48,8 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Responds('three', '$tres');
         $this->box->given_Contains('one', 'two');
         $this->box->given_Contains('two', 'three');
-        $this->box->givenTheArgument_WithValue('two/three/tres', 'World');
-        $this->box->givenTheArgument_WithValue('two/dos', 'There');
+        $this->box->givenTheRequestArgument_Is('two/three/tres', 'World');
+        $this->box->givenTheRequestArgument_Is('two/dos', 'There');
 
         $this->box->whenIGetTheResponseFrom('one');
         $this->box->thenTheResponseShouldBe('Hello There World');
@@ -66,7 +66,7 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Contains('bar', 'baz');
 
         $this->box->givenTheMethodIs('bar');
-        $this->box->givenTheArgument_WithValue('bar/baz/do', 'foo');
+        $this->box->givenTheRequestArgument_Is('bar/baz/do', 'foo');
 
         $this->box->whenIGetTheResponseFrom('root');
         $this->box->thenTheResponseShouldBe('Hello my dear foo!');

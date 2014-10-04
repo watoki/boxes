@@ -20,12 +20,15 @@ class Box extends Container {
     }
 
     /**
-     * @param Request|WebRequest $request
+     * @param Request|WebRequest|BoxedRequest $request
      * @return \watoki\curir\delivery\WebResponse
      */
     public function respond(Request $request) {
-        $this->shelf->unwrap($request);
+        if (!($request instanceof BoxedRequest)) {
+            $request = new BoxedRequest($request);
+        }
+        $this->shelf->unbox($request);
         return parent::respond($request);
     }
 
-} 
+}

@@ -20,6 +20,9 @@ class Shelf {
     /** @var array|Path[] default paths indexed by box name */
     private $boxes = array();
 
+    /** @var WebRequest */
+    private $originalRequest;
+
     public function __construct(Router $router) {
         $this->router = $router;
     }
@@ -28,40 +31,39 @@ class Shelf {
         $this->boxes[$name] = $defaultPath;
     }
 
-    public function unwrap(WebRequest $request) {
-        if ($request->getArguments()->has(WebRequest::$METHOD_KEY)) {
-            $method = $request->getArguments()->get(WebRequest::$METHOD_KEY);
-            $request->setMethod($method);
-            $request->getArguments()->remove(WebRequest::$METHOD_KEY);
-        } else {
-            $request->setMethod(WebRequest::METHOD_GET);
-        }
+    public function unbox(BoxedRequest $request) {
+        $this->originalRequest = $request->getOriginalRequest();
 
         foreach ($this->boxes as $name => $path) {
-            $unwrapped = $request->copy();
-            $unwrapped->setTarget($path);
-            $unwrapped->getArguments()->clear();
+            $unboxed = $request->copy();
+            $unboxed->setTarget($path);
+            $unboxed->getArguments()->clear();
 
             if ($request->getArguments()->has($name)) {
                 /** @var Map $arguments */
                 $arguments = $request->getArguments()->get($name);
                 if ($arguments->has(self::TARGET_KEY)) {
                     $target = $arguments->get(self::TARGET_KEY);
-                    $unwrapped->setTarget(Path::fromString($target));
-                    $arguments->remove(self::TARGET_KEY);
+                    $unboxed->setTarget(Path::fromString($target));
+//                    $arguments->remove(self::TARGET_KEY);
                 }
-                $unwrapped->getArguments()->merge($arguments);
+                if ($arguments->has(WebRequest::$METHOD_KEY)) {
+                    $method = $arguments->get(WebRequest::$METHOD_KEY);
+                    $unboxed->setMethod($method);
+                    $arguments->remove(WebRequest::$METHOD_KEY);
+                }
+                $unboxed->getArguments()->merge($arguments);
             }
 
-            $this->responses[$name] = $this->router->route($unwrapped)->respond();
+            $this->responses[$name] = $this->router->route($unboxed)->respond();
         }
     }
 
-    public function wrap($name) {
+    public function box($name) {
         if (!$this->responses) {
             throw new \Exception("The Request needs to be unwrapped first.");
         }
-        $wrapper = new Wrapper($name);
+        $wrapper = new Boxer($name, $this->originalRequest->getArguments());
         return $wrapper->wrap($this->responses[$name]);
     }
 

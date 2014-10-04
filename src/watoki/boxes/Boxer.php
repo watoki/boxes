@@ -9,7 +9,7 @@ use watoki\dom\Element;
 use watoki\dom\Parser;
 use watoki\dom\Printer;
 
-class Wrapper {
+class Boxer {
 
     private static $formElements = array(
         'input',
@@ -18,10 +18,15 @@ class Wrapper {
         'select'
     );
 
+    /** @var string */
     private $name;
 
-    function __construct($name) {
+    /** @var \watoki\collections\Map */
+    private $state;
+
+    function __construct($name, Map $state) {
         $this->name = $name;
+        $this->state = $state;
     }
 
     public function wrap(WebResponse $response) {
@@ -120,6 +125,7 @@ class Wrapper {
         $params->merge($target->getParameters());
 
         $wrapped = Url::fromString('');
+        $wrapped->getParameters()->merge($this->state);
         $wrapped->getParameters()->set($box, $params);
         return $wrapped;
     }
