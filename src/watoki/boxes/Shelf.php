@@ -66,7 +66,7 @@ class Shelf {
 
     public function box($name) {
         if (!$this->responses) {
-            throw new \Exception("The Request needs to be unwrapped first.");
+            throw new \Exception("The Request needs to be unboxed first.");
         }
         $wrapper = new Boxer($name, $this->paths[$name], $this->originalRequest->getArguments());
         return $wrapper->wrap($this->responses[$name]);
