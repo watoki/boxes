@@ -5,7 +5,6 @@ use watoki\boxes\Box;
 use watoki\boxes\BoxedRequest;
 use watoki\boxes\Shelf;
 use watoki\collections\Liste;
-use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
 use watoki\deli\Path;
 use watoki\deli\router\DynamicRouter;
@@ -39,21 +38,18 @@ class TestBox extends Box {
 
     public function add($name, Box $box, $args) {
         $this->addBox($name, $box);
-        $request = new BoxedRequest(
-            Path::fromString($name),
-            WebRequest::METHOD_GET,
-            new Map($args));
+        $request = BoxedRequest::fromString($name, $args);
         $this->shelf->set($name, $request);
     }
 
-    public function addToCollection($name, Box $box, $query) {
+    public function addToCollection($name, Box $box, $args) {
         $this->addBox($name, $box);
 
         if (!isset($this->collections[$name])) {
             $this->collections[$name] = new Liste();
             $this->shelf->setList($name, $this->collections[$name]);
         }
-        $this->collections[$name]->append(Path::fromString($name . $query));
+        $this->collections[$name]->append(BoxedRequest::fromString($name, $args));
     }
 
     private function addBox($name, Box $box) {
@@ -83,7 +79,11 @@ class TestBox extends Box {
 
     private function render($model) {
         foreach ($model as $key => $value) {
-            $$key = $value;
+            if (is_array($value)) {
+                $$key = implode('', $value);
+            } else {
+                $$key = $value;
+            }
         }
         $template = str_replace('"', '\"', $this->response);
         return eval('return "' . $template . '";');

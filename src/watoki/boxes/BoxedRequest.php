@@ -20,6 +20,10 @@ class BoxedRequest extends WebRequest {
         );
     }
 
+    public static function fromString($target, $args = array()) {
+        return new BoxedRequest(Path::fromString($target), WebRequest::METHOD_GET, new Map($args));
+    }
+
     public static function fromRequest(WebRequest $request) {
         $boxed = new BoxedRequest(
             $request->getTarget()->copy(),

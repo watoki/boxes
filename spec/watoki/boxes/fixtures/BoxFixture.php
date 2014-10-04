@@ -39,8 +39,8 @@ class BoxFixture extends Fixture {
         $this->boxes[$outer]->add($inner, $this->boxes[$inner], $args);
     }
 
-    public function given_ContainsA_With($outer, $inner, $arg, $value) {
-        $this->boxes[$outer]->addToCollection($inner, $this->boxes[$inner], "?$arg=$value");
+    public function given_ContainsA_With($outer, $inner, $args) {
+        $this->boxes[$outer]->addToCollection($inner, $this->boxes[$inner], $args);
     }
 
     public function givenAPathFrom_To($start, $target) {

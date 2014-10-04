@@ -22,7 +22,7 @@ class Shelf {
     /** @var array|WebResponse[] */
     private $responses = array();
 
-    /** @var array|BoxedRequest[] default Requests indexed by box name */
+    /** @var array|BoxedRequest[]|Liste[] default Requests indexed by box name */
     private $boxes = array();
 
     /** @var array|Path[] paths used for each box */
@@ -55,31 +55,59 @@ class Shelf {
         $this->originalRequest = $request->getOriginalRequest();
 
         foreach ($this->boxes as $name => $defaultRequest) {
-            $this->targets[$name] = $defaultRequest->getTarget();
-
-            $unboxed = $defaultRequest->copy();
-            $unboxed->setOriginalRequest($request->getOriginalRequest());
-
-            if ($request->getArguments()->has($name)) {
-                /** @var Map $arguments */
-                $arguments = $request->getArguments()->get($name);
-
-                $unboxed->getArguments()->clear();
-                $unboxed->getArguments()->merge($arguments);
-
-                if ($arguments->has(self::TARGET_KEY)) {
-                    $target = Path::fromString($arguments->get(self::TARGET_KEY));
-                    $this->targets[$name] = $target;
-                    $unboxed->setTarget($target);
+            if ($defaultRequest instanceof Liste) {
+                foreach ($defaultRequest as $i => $iDefaultRequest) {
+                    $this->unboxBoxCollection($request, $iDefaultRequest, $name, $i);
                 }
-                if ($arguments->has(WebRequest::$METHOD_KEY)) {
-                    $method = $arguments->get(WebRequest::$METHOD_KEY);
-                    $unboxed->setMethod($method);
-                    $arguments->remove(WebRequest::$METHOD_KEY);
-                }
+            } else if ($defaultRequest instanceof BoxedRequest) {
+                $this->unboxBox($request, $defaultRequest, $name);
             }
+        }
+    }
 
-            $this->responses[$name] = $this->router->route($unboxed)->respond();
+    private function unboxBox(BoxedRequest $request, BoxedRequest $defaultRequest, $name) {
+        $this->targets[$name] = $defaultRequest->getTarget();
+
+        $unboxed = $defaultRequest->copy();
+        $unboxed->setOriginalRequest($request->getOriginalRequest());
+
+        if ($request->getArguments()->has($name)) {
+            $this->parseArguments($unboxed, $name, $request->getArguments()->get($name));
+        }
+
+        $this->responses[$name] = $this->router->route($unboxed)->respond();
+    }
+
+    private function unboxBoxCollection(BoxedRequest $request, BoxedRequest $defaultRequest, $name, $i) {
+        $this->targets[$name][] = $defaultRequest->getTarget();
+
+        $unboxed = $defaultRequest->copy();
+        $unboxed->setOriginalRequest($request->getOriginalRequest());
+
+        if ($request->getArguments()->has($name)) {
+            /** @var Map $arguments */
+            $arguments = $request->getArguments()->get($name);
+            if ($arguments->has($i)) {
+                $this->parseArguments($unboxed, $name, $arguments->get($i));
+            }
+        }
+
+        $this->responses[$name][] = $this->router->route($unboxed)->respond();
+    }
+
+    private function parseArguments(BoxedRequest $unboxed, $name, Map $arguments) {
+        $unboxed->getArguments()->clear();
+        $unboxed->getArguments()->merge($arguments);
+
+        if ($arguments->has(self::TARGET_KEY)) {
+            $target = Path::fromString($arguments->get(self::TARGET_KEY));
+            $this->targets[$name] = $target;
+            $unboxed->setTarget($target);
+        }
+        if ($arguments->has(WebRequest::$METHOD_KEY)) {
+            $method = $arguments->get(WebRequest::$METHOD_KEY);
+            $unboxed->setMethod($method);
+            $arguments->remove(WebRequest::$METHOD_KEY);
         }
     }
 
@@ -87,8 +115,21 @@ class Shelf {
         if (!$this->responses) {
             throw new \Exception("The Request needs to be unboxed first.");
         }
-        $boxer = new Boxer($name, $this->targets[$name], $this->originalRequest->getArguments());
-        $box = $boxer->box($this->responses[$name]);
+
+        if (is_array($this->responses[$name])) {
+            $boxes = array();
+            foreach ($this->responses[$name] as $i => $response) {
+                $boxes[] = $this->boxResponse($name . "[$i]", $response, $this->targets[$name][$i]);
+            }
+            return $boxes;
+        }
+
+        return $this->boxResponse($name, $this->responses[$name], $this->targets[$name]);
+    }
+
+    private function boxResponse($name, $response, Path $target) {
+        $boxer = new Boxer($name, $target, $this->originalRequest->getArguments());
+        $box = $boxer->box($response);
         $this->headElements->putAll($boxer->getHeadElements());
         return $box;
     }

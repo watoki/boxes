@@ -224,19 +224,17 @@ class WrapResponsesTest extends Specification {
     }
 
     function testBoxCollection() {
-        $this->markTestIncomplete();
-
         $this->box->given_Responds('outer', '$inner');
         $this->box->given_Responds('inner', '<a href="?foo=bar">$name</a>');
-        $this->box->given_ContainsA_With('outer', 'inner', 'name', 'One');
-        $this->box->given_ContainsA_With('outer', 'inner', 'name', 'Two');
-        $this->box->given_ContainsA_With('outer', 'inner', 'name', 'Three');
+        $this->box->given_ContainsA_With('outer', 'inner', array('name' => 'One'));
+        $this->box->given_ContainsA_With('outer', 'inner', array('name' => 'Two'));
+        $this->box->given_ContainsA_With('outer', 'inner', array('name' => 'Three'));
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe(
-            '<a href="?a[0][foo=bar]">One</a>' .
-            '<a href="?a[1][foo=bar]">Two</a>' .
-            '<a href="?a[2][foo=bar]">Three</a>');
+            '<a href="?inner[0][foo]=bar">One</a>' .
+            '<a href="?inner[1][foo]=bar">Two</a>' .
+            '<a href="?inner[2][foo]=bar">Three</a>');
     }
 
 }
