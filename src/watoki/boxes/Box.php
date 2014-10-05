@@ -4,6 +4,7 @@ namespace watoki\boxes;
 use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
+use watoki\curir\protocol\Url;
 use watoki\deli\Path;
 use watoki\deli\Router;
 
@@ -56,8 +57,12 @@ class Box implements Dispatching {
 
     private function handleRedirects(WrappedRequest $request, Router $router) {
         while ($this->response->getHeaders()->has(WebResponse::HEADER_LOCATION)) {
-            $target = $this->response->getHeaders()->get(WebResponse::HEADER_LOCATION);
-            $redirected = new WrappedRequest($request->getOriginal(), Path::fromString($target));
+            $target = Url::fromString($this->response->getHeaders()->get(WebResponse::HEADER_LOCATION));
+            $redirected = new WrappedRequest(
+                    $request->getOriginal(),
+                    $target->getPath(),
+                    WebRequest::METHOD_GET,
+                    $target->getParameters());
 
             $this->response = $router->route($redirected)->respond();
         }
