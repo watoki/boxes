@@ -24,7 +24,7 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Responds('other', 'Other');
         $this->box->given_Contains('outer', 'inner');
 
-        $this->box->givenTheTargetArgumentOf_Is('inner', 'other');
+        $this->box->givenTheRequestArgument_Is('inner/!', 'other');
         $this->box->givenAPathFrom_To('outer', 'other');
 
         $this->box->whenIGetTheResponseFrom('outer');

@@ -145,8 +145,8 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('o', 'a');
         $this->box->given_Contains('o', 'b');
 
-        $this->box->givenTheTargetArgumentOf_Is('a', 'a');
-        $this->box->givenTheTargetArgumentOf_Is('b', 'b');
+        $this->box->givenTheRequestArgument_Is('a/!', 'a');
+        $this->box->givenTheRequestArgument_Is('b/!', 'b');
         $this->box->givenTheRequestArgument_Is('a/argA', 'A');
         $this->box->givenTheRequestArgument_Is('a/arg2', '2');
         $this->box->givenTheRequestArgument_Is('a/aa/arg', 'AA');
@@ -171,7 +171,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->givenAPathFrom_To('outer', 'other');
-        $this->box->givenTheTargetArgumentOf_Is('inner', 'other');
+        $this->box->givenTheRequestArgument_Is('inner/!', 'other');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('

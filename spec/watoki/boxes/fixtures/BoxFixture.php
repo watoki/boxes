@@ -1,7 +1,6 @@
 <?php
 namespace spec\watoki\boxes\fixtures;
 
-use watoki\boxes\Box;
 use watoki\boxes\BoxCollection;
 use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
@@ -55,10 +54,6 @@ class BoxFixture extends Fixture {
     public function givenAPathFrom_To($start, $target) {
         $this->boxes[$start]->router->set(Path::fromString($target),
             RespondingTarget::factory($this->spec->factory, $this->boxes[$target]));
-    }
-
-    public function givenTheTargetArgumentOf_Is($box, $target) {
-        $this->givenTheRequestArgument_Is($box . '/' . Box::$TARGET_KEY, $target);
     }
 
     public function givenTheRequestArgument_Is($keyPath, $value) {
