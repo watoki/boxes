@@ -106,4 +106,21 @@ class UnwrapRequestsTest extends Specification {
         $this->box->thenTheResponseShouldBe('first comes c');
     }
 
+    function testRedirects() {
+        $this->box->given_Responds('o', '$a -> $b');
+        $this->box->given_Responds('a', 'A');
+        $this->box->given_Responds('b', 'B');
+        $this->box->given_HasTheSideEffect('b', 'return \watoki\curir\responder\Redirecter::fromString("../c");');
+        $this->box->given_Responds('c', 'C');
+        $this->box->given_HasTheSideEffect('c', 'return \watoki\curir\responder\Redirecter::fromString("../a");');
+
+        $this->box->given_Contains('o', 'a');
+        $this->box->given_Contains('o', 'b');
+
+        $this->box->givenAPathFrom_To('o', 'c');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBe('A -> A');
+    }
+
 }

@@ -44,10 +44,22 @@ class Box implements Dispatching {
         }
 
         $this->response = $router->route($request)->respond();
+
+        $this->handleRedirects($request, $router);
+
         return $request;
     }
 
     public function getModel() {
         return $this->response->getBody();
+    }
+
+    private function handleRedirects(WrappedRequest $request, Router $router) {
+        while ($this->response->getHeaders()->has(WebResponse::HEADER_LOCATION)) {
+            $target = $this->response->getHeaders()->get(WebResponse::HEADER_LOCATION);
+            $redirected = new WrappedRequest($request->getOriginal(), Path::fromString($target));
+
+            $this->response = $router->route($redirected)->respond();
+        }
     }
 }
