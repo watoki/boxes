@@ -6,7 +6,7 @@ use watoki\curir\delivery\WebRequest;
 use watoki\curir\protocol\Url;
 use watoki\deli\Path;
 
-class BoxedRequest extends WebRequest {
+class WrappedRequest extends WebRequest {
 
     /** @var null|WebRequest */
     private $originalRequest;
@@ -21,11 +21,11 @@ class BoxedRequest extends WebRequest {
     }
 
     public static function fromString($target, $args = array()) {
-        return new BoxedRequest(Path::fromString($target), WebRequest::METHOD_GET, new Map($args));
+        return new WrappedRequest(Path::fromString($target), WebRequest::METHOD_GET, new Map($args));
     }
 
     public static function fromRequest(WebRequest $request) {
-        $boxed = new BoxedRequest(
+        $boxed = new WrappedRequest(
             $request->getTarget()->copy(),
             WebRequest::METHOD_GET,
             $request->getArguments()->copy()
@@ -42,10 +42,10 @@ class BoxedRequest extends WebRequest {
     }
 
     /**
-     * @return BoxedRequest
+     * @return WrappedRequest
      */
     public function copy() {
-        $copy = new BoxedRequest(
+        $copy = new WrappedRequest(
             $this->getTarget()->copy(),
             $this->getMethod(),
             $this->getArguments()->copy()

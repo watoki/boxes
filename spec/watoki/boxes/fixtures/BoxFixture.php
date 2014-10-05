@@ -1,7 +1,8 @@
 <?php
 namespace spec\watoki\boxes\fixtures;
 
-use watoki\boxes\Shelf;
+use watoki\boxes\Box;
+use watoki\boxes\BoxCollection;
 use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
@@ -39,8 +40,12 @@ class BoxFixture extends Fixture {
         $this->boxes[$outer]->add($inner, $this->boxes[$inner], $args);
     }
 
-    public function given_ContainsA_With($outer, $inner, $args) {
-        $this->boxes[$outer]->addToList($inner, $this->boxes[$inner], $args);
+    public function given_ContainsACollection($outer, $collection) {
+        $this->boxes[$outer]->addCollection($collection, new BoxCollection());
+    }
+
+    public function given_HasIn_A_With($outer, $collection, $inner, $args) {
+        $this->boxes[$outer]->addToCollection($collection, $inner, $this->boxes[$inner], $args);
     }
 
     public function givenAPathFrom_To($start, $target) {
@@ -49,7 +54,7 @@ class BoxFixture extends Fixture {
     }
 
     public function givenTheTargetArgumentOf_Is($box, $target) {
-        $this->givenTheRequestArgument_Is($box . '/' .Shelf::TARGET_KEY, $target);
+        $this->givenTheRequestArgument_Is($box . '/' . Box::$TARGET_KEY, $target);
     }
 
     public function givenTheRequestArgument_Is($keyPath, $value) {

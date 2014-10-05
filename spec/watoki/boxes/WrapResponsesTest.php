@@ -56,8 +56,8 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('one');
         $this->box->thenTheResponseShouldBe(
-            'One <a href="?two[!]=here&two[foo]=bar">Two</a> ' .
-            '<a href="?two[three][!]=there&two[three][me]=you">Three</a>');
+                'One <a href="?two[!]=here&two[foo]=bar">Two</a> ' .
+                '<a href="?two[three][!]=there&two[three][me]=you">Three</a>');
     }
 
     function testFormWithAction() {
@@ -154,8 +154,8 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('o');
         $this->box->thenTheResponseShouldBe(
-            '<a href="?a[!]=here&a[argA]=X&b[!]=b&b[argB]=B">A</a> ' .
-            '<a href="?a[!]=a&a[argA]=A&a[arg2]=2&a[aa][arg]=AA&b[!]=there&b[argB]=Y">B</a>');
+                '<a href="?a[!]=here&a[argA]=X&b[!]=b&b[argB]=B">A</a> ' .
+                '<a href="?a[!]=a&a[argA]=A&a[arg2]=2&a[aa][arg]=AA&b[!]=there&b[argB]=Y">B</a>');
     }
 
     function testAssets() {
@@ -224,17 +224,43 @@ class WrapResponsesTest extends Specification {
     }
 
     function testBoxList() {
-        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('outer', '$list');
         $this->box->given_Responds('inner', '<a href="?foo=bar">$name</a>');
-        $this->box->given_ContainsA_With('outer', 'inner', array('name' => 'One'));
-        $this->box->given_ContainsA_With('outer', 'inner', array('name' => 'Two'));
-        $this->box->given_ContainsA_With('outer', 'inner', array('name' => 'Three'));
+
+        $this->box->given_ContainsACollection('outer', 'list');
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('name' => 'One'));
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('name' => 'Two'));
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('name' => 'Three'));
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe(
-            '<a href="?inner[0][foo]=bar">One</a>' .
-            '<a href="?inner[1][foo]=bar">Two</a>' .
-            '<a href="?inner[2][foo]=bar">Three</a>');
+                '<a href="?list[0][foo]=bar">One</a> ' .
+                '<a href="?list[1][foo]=bar">Two</a> ' .
+                '<a href="?list[2][foo]=bar">Three</a>');
+    }
+
+    function testListWithHeaders() {
+        $this->box->given_Responds('outer', '
+            <html>
+                <head>
+                    <title>Outer</title>
+                </head>
+            </html>');
+        $this->box->given_Responds('inner', '<html><head><script src="$foo"/></head></html>');
+
+        $this->box->given_ContainsACollection('outer', 'list');
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'one'));
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'bar'));
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'bar'));
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('
+            <html>
+                <head>
+                    <title>Outer</title>
+                <script src="inner/one"/><script src="inner/bar"/></head>
+            </html>');
+
     }
 
 }

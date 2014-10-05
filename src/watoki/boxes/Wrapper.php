@@ -4,14 +4,13 @@ namespace watoki\boxes;
 use watoki\collections\Map;
 use watoki\collections\Set;
 use watoki\curir\delivery\WebRequest;
-use watoki\curir\delivery\WebResponse;
 use watoki\curir\protocol\Url;
 use watoki\deli\Path;
 use watoki\dom\Element;
 use watoki\dom\Parser;
 use watoki\dom\Printer;
 
-class Boxer {
+class Wrapper {
 
     private static $formElements = array(
         'input',
@@ -43,8 +42,12 @@ class Boxer {
         $this->headElements = new Set();
     }
 
-    public function box(WebResponse $response) {
-        $parser = new Parser($response->getBody());
+    /**
+     * @param string $response
+     * @return string
+     */
+    public function wrap($response) {
+        $parser = new Parser($response);
         $root = $parser->getRoot();
 
         $body = $this->findElement($root, 'html/body');
@@ -155,7 +158,7 @@ class Boxer {
 
         $params = new Map();
         if ($target->getPath()->toString()) {
-            $params->set(Shelf::TARGET_KEY, $target->getPath()->toString());
+            $params->set(Box::$TARGET_KEY, $target->getPath()->toString());
         }
         $params->merge($target->getParameters());
 

@@ -73,19 +73,19 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testBoxList() {
-        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('outer', '$list');
         $this->box->given_Responds('inner', '$foo');
 
-        $this->box->given_ContainsA_With('outer', 'inner', array('foo' => 'bar'));
-        $this->box->given_ContainsA_With('outer', 'inner', array('foo' => 'bar'));
-        $this->box->given_ContainsA_With('outer', 'inner', array('foo' => 'bar'));
+        $this->box->given_ContainsACollection('outer', 'list');
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array());
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array());
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'bar'));
 
-        $this->box->givenTheRequestArgument_Is('inner/0/foo', 'One');
-        $this->box->givenTheRequestArgument_Is('inner/1/foo', 'Two');
-        $this->box->givenTheRequestArgument_Is('inner/2/foo', 'Three');
+        $this->box->givenTheRequestArgument_Is('list/0/foo', 'One');
+        $this->box->givenTheRequestArgument_Is('list/1/foo', 'Two');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('OneTwoThree');
+        $this->box->thenTheResponseShouldBe('One Two bar');
     }
 
 }

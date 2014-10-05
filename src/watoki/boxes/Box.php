@@ -1,35 +1,51 @@
 <?php
 namespace watoki\boxes;
 
-use watoki\curir\Container;
+use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
-use watoki\deli\Request;
-use watoki\factory\Factory;
+use watoki\curir\delivery\WebResponse;
+use watoki\deli\Path;
+use watoki\deli\Router;
 
-class Box extends Container {
+class Box implements Dispatching {
 
-    /** @var Shelf */
-    protected $shelf;
+    public static $TARGET_KEY = '!';
 
-    /**
-     * @param Factory $factory <-
-     */
-    function __construct(Factory $factory) {
-        parent::__construct($factory);
-        $this->shelf = new Shelf($this->router);
+    /** @var WebResponse */
+    private $response;
+
+    /** @var Path */
+    private $target;
+
+    /** @var Map */
+    private $arguments;
+
+    function __construct(Path $defaultTarget, Map $defaultArguments = null) {
+        $this->target = $defaultTarget;
+        $this->arguments = $defaultArguments ? : new Map();
     }
 
-    /**
-     * @param Request|WebRequest|BoxedRequest $request
-     * @return \watoki\curir\delivery\WebResponse
-     */
-    public function respond(Request $request) {
-        if (!($request instanceof BoxedRequest)) {
-            $request = BoxedRequest::fromRequest($request);
+    public function dispatch(WrappedRequest $request, Router $router) {
+        $arguments = $request->getArguments();
+
+        $request->setTarget($this->target);
+
+        if ($arguments->isEmpty()) {
+            $arguments->merge($this->arguments);
+        } else {
+            if ($arguments->has(self::$TARGET_KEY)) {
+                $request->setTarget(Path::fromString($arguments->get(self::$TARGET_KEY)));
+            }
+            if ($arguments->has(WebRequest::$METHOD_KEY)) {
+                $request->setMethod($arguments->get(WebRequest::$METHOD_KEY));
+            }
         }
-        $this->shelf->unbox($request);
-        $response = parent::respond($request);
-        return $this->shelf->mergeHeaders($response);
+
+        $this->response = $router->route($request)->respond();
+        return $request;
     }
 
+    public function getModel() {
+        return $this->response->getBody();
+    }
 }
