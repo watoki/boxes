@@ -55,6 +55,22 @@ class UnwrapRequestsTest extends Specification {
         $this->box->thenTheResponseShouldBe('Hello There World');
     }
 
+    function testBoxList() {
+        $this->box->given_Responds('outer', '$list');
+        $this->box->given_Responds('inner', '$foo');
+
+        $this->box->given_ContainsACollection('outer', 'list');
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array());
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array());
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'bar'));
+
+        $this->box->givenTheRequestArgument_Is('list/0/foo', 'One');
+        $this->box->givenTheRequestArgument_Is('list/1/foo', 'Two');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('One Two bar');
+    }
+
     function testMethodFindsTarget() {
         $this->box->given_Responds('root', 'Hello $foo $bar');
         $this->box->given_Responds('foo', 'my');
@@ -72,20 +88,22 @@ class UnwrapRequestsTest extends Specification {
         $this->box->thenTheResponseShouldBe('Hello my dear foo!');
     }
 
-    function testBoxList() {
-        $this->box->given_Responds('outer', '$list');
-        $this->box->given_Responds('inner', '$foo');
+    function testPrimaryTargetIsDispatchedFirst() {
+        $this->box->given_Responds('root', '$a $b');
+        $this->box->given_Responds('a', '{$GLOBALS[\'foo\']}');
+        $this->box->given_Responds('b', 'comes $c');
+        $this->box->given_Responds('c', 'c');
+        $this->box->given_HasTheSideEffect('c', '$GLOBALS["foo"] = "first";');
 
-        $this->box->given_ContainsACollection('outer', 'list');
-        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array());
-        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array());
-        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'bar'));
+        $this->box->given_Contains('root', 'a');
+        $this->box->given_Contains('root', 'b');
+        $this->box->given_Contains('b', 'c');
 
-        $this->box->givenTheRequestArgument_Is('list/0/foo', 'One');
-        $this->box->givenTheRequestArgument_Is('list/1/foo', 'Two');
+        $this->box->givenTheRequestArgument_Is('_', 'b');
+        $this->box->givenTheRequestArgument_Is('b/_', 'c');
 
-        $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('One Two bar');
+        $this->box->whenIGetTheResponseFrom('root');
+        $this->box->thenTheResponseShouldBe('first comes c');
     }
 
 }

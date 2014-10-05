@@ -32,6 +32,10 @@ class BoxFixture extends Fixture {
         $this->boxes[$boxName] = new TestBox(new Factory(), $boxResponse);
     }
 
+    public function given_HasTheSideEffect($name, $code) {
+        $this->boxes[$name]->sideEffect = $code;
+    }
+
     public function given_Contains($outer, $inner) {
         $this->given_Contains_With($outer, $inner, array());
     }

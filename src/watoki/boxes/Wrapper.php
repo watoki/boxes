@@ -165,6 +165,7 @@ class Wrapper {
         $wrapped = Url::fromString('');
         $wrapped->getParameters()->merge($this->state);
         $wrapped->getParameters()->set($box, $params);
+        $wrapped->getParameters()->set(Box::$PRIMARY_TARGET_KEY, $this->name);
         return $wrapped;
     }
 

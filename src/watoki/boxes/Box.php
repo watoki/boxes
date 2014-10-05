@@ -11,6 +11,8 @@ class Box implements Dispatching {
 
     public static $TARGET_KEY = '!';
 
+    public static $PRIMARY_TARGET_KEY = '_';
+
     /** @var WebResponse */
     private $response;
 

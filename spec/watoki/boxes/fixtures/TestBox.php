@@ -23,6 +23,8 @@ class TestBox extends BoxContainer {
     /** @var array|BoxCollection[] */
     private $collections = array();
 
+    public $sideEffect = '';
+
     function __construct(Factory $factory, $response) {
         parent::__construct($factory);
         $this->router = new DynamicRouter();
@@ -74,7 +76,8 @@ class TestBox extends BoxContainer {
             }
         }
         $template = str_replace('"', '\"', $this->response);
-        return eval('return "' . $template . '";');
+        $code = $this->sideEffect . 'return "' . $template . '";';
+        return eval($code);
     }
 
 }

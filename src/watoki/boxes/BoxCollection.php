@@ -34,6 +34,14 @@ class BoxCollection implements Dispatching {
     }
 
     public function dispatch(WrappedRequest $request, Router $router) {
+        if ($request->getArguments()->has(Box::$PRIMARY_TARGET_KEY)) {
+            $primary = $request->getArguments()->get(Box::$PRIMARY_TARGET_KEY);
+            uksort($this->children, function ($a, $b) use ($primary) {
+                $return = $a == $primary ? -1 : ($b == $primary ? 1 : 0);
+                return $return;
+            });
+        }
+
         foreach ($this->children as $name => $child) {
             $next = $this->unwrap($request, $name);
 
