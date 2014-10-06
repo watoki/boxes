@@ -160,7 +160,7 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('a');
         $this->box->thenTheResponseShouldBe(
-                '<a href="">A</a> ' . // The BoxContainer itself is not wrapped. Should it?
+                '<a href="?_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E">A</a> ' .
                 '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_b[_f][foo]=F&_=b">B</a> ' .
                 '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_b[foo]=B&_b[_]=f&_=b">F</a> ' .
                 '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[_d][foo]=D&_c[_e][foo]=E&_=c">C</a> ' .
@@ -184,16 +184,16 @@ class WrapResponsesTest extends Specification {
 
     function testDoNotKeepStateIfTargetChanges() {
         $this->box->given_Responds('o', '$a');
-        $this->box->given_Responds('a', '<a href="y" target="x">A</a> $b');
+        $this->box->given_Responds('a', '<a href="y" target="a">A</a> $b');
         $this->box->given_Responds('b', '<a href="">B</a>');
 
         $this->box->given_Contains('o', 'a');
         $this->box->given_Contains('a', 'b');
 
-        $this->box->givenTheRequestArgument_Is('_a/_b/foo', 'A');
+        $this->box->givenTheRequestArgument_Is('_a/_b/foo', 'B');
 
         $this->box->whenIGetTheResponseFrom('o');
-        $this->box->thenTheResponseShouldBe('<a href="?_x[!]=y&_=x">A</a> <a href="?_a[_]=b&_=a">B</a>');
+        $this->box->thenTheResponseShouldBe('<a href="?_a[!]=y&_a[_b][foo]=B&_=a">A</a> <a href="?_a[_]=b&_=a">B</a>');
     }
 
     function testDoNotKeepChildStateIfTargetChanges() {

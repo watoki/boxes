@@ -53,7 +53,7 @@ class Wrapper {
         $root = $parser->getRoot();
 
         $body = $this->findElement($root, 'html/body');
-        if (!$body) {
+        if (is_null($this->name) || !$body) {
             $body = $root;
         }
         $this->wrapChildren($body);
@@ -113,6 +113,9 @@ class Wrapper {
     }
 
     private function wrapForm(Element $element) {
+        if (is_null($this->name)) {
+            return;
+        }
         $target = '';
         if ($element->getAttribute('action')) {
             $target = $element->getAttribute('action')->getValue();
@@ -125,7 +128,9 @@ class Wrapper {
 
         $wrapped = $this->wrapUrl($element, $target);
 
-        $wrapped->getParameters()->one()->set(WebRequest::$METHOD_KEY, $method);
+        if ($wrapped->getParameters()->one() instanceof Map) {
+            $wrapped->getParameters()->one()->set(WebRequest::$METHOD_KEY, $method);
+        }
         $element->setAttribute('action', $wrapped->toString());
 
         $this->wrapFormElements($element);
@@ -151,6 +156,18 @@ class Wrapper {
 
     private function wrapUrl(Element $element, $target) {
         $target = Url::fromString($target);
+        if (is_null($this->name)) {
+            $params = $target->getParameters();
+
+            foreach ($this->state as $name => $state) {
+                if ($this->isKeepWorthyState($params, $name)) {
+                    $params->set($name, $state);
+                }
+            }
+
+            return $target;
+        }
+
         $box = $this->name;
 
         if ($element->getAttribute('target')) {

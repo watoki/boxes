@@ -2,6 +2,8 @@
 namespace watoki\boxes;
 
 use watoki\collections\Set;
+use watoki\curir\delivery\WebRequest;
+use watoki\deli\Path;
 use watoki\deli\Router;
 use watoki\dom\Element;
 use watoki\dom\Parser;
@@ -34,7 +36,9 @@ class BoxCollection implements Dispatching {
         return $this->model;
     }
 
-    public function wrapContainer($body) {
+    public function wrapContainer($body, WebRequest $request) {
+        $wrapper = new Wrapper(null, new Path(), $request->getArguments());
+        $body = $wrapper->wrap($body);
         return $this->mergeHeaders($body);
     }
 
