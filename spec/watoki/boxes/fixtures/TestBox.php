@@ -39,9 +39,8 @@ class TestBox extends BoxContainer {
         $this->boxes->set($name, new Box(Path::fromString($name), new Map($args)));
     }
 
-    public function addCollection($name, BoxCollection $collection) {
-        $this->collections[$name] = $collection;
-        $this->boxes->set($name, $collection);
+    public function addCollection($name, array $boxes) {
+        $this->collections[$name] = parent::addCollection($name, $boxes);
     }
 
     public function addToCollection($collection, $name, BoxContainer $box, $args) {

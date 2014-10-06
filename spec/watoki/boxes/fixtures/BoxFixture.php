@@ -1,7 +1,6 @@
 <?php
 namespace spec\watoki\boxes\fixtures;
 
-use watoki\boxes\BoxCollection;
 use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
@@ -44,7 +43,7 @@ class BoxFixture extends Fixture {
     }
 
     public function given_ContainsACollection($outer, $collection) {
-        $this->boxes[$outer]->addCollection($collection, new BoxCollection());
+        $this->boxes[$outer]->addCollection($collection, array());
     }
 
     public function given_HasIn_A_With($outer, $collection, $inner, $args) {
