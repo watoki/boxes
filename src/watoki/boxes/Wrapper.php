@@ -35,7 +35,7 @@ class Wrapper {
     private $headElements;
 
     /** @var Map */
-    private $state;
+    protected $state;
 
     function __construct($name, Path $path, Map $state) {
         $this->name = $name;
@@ -52,10 +52,7 @@ class Wrapper {
         $parser = new Parser($response);
         $root = $parser->getRoot();
 
-        $body = $this->findElement($root, 'html/body');
-        if (is_null($this->name) || !$body) {
-            $body = $root;
-        }
+        $body = $this->findBody($root);
         $this->wrapChildren($body);
 
         $head = $this->findElement($root, 'html/head');
@@ -69,6 +66,14 @@ class Wrapper {
 
         $printer = new Printer();
         return $printer->printNodes($body->getChildren());
+    }
+
+    /**
+     * @param $root
+     * @return null|Element
+     */
+    protected function findBody($root) {
+        return $this->findElement($root, 'html/body') ? : $root;
     }
 
     public function getHeadElements() {
@@ -113,9 +118,6 @@ class Wrapper {
     }
 
     private function wrapForm(Element $element) {
-        if (is_null($this->name)) {
-            return;
-        }
         $target = '';
         if ($element->getAttribute('action')) {
             $target = $element->getAttribute('action')->getValue();
@@ -136,7 +138,7 @@ class Wrapper {
         $this->wrapFormElements($element);
     }
 
-    private function wrapFormElements(Element $in) {
+    protected function wrapFormElements(Element $in) {
         foreach ($in->getChildElements() as $child) {
             if (in_array($child->getName(), self::$formElements)) {
                 $name = $child->getAttribute('name');
@@ -154,19 +156,8 @@ class Wrapper {
         }
     }
 
-    private function wrapUrl(Element $element, $target) {
+    protected function wrapUrl(Element $element, $target) {
         $target = Url::fromString($target);
-        if (is_null($this->name)) {
-            $params = $target->getParameters();
-
-            foreach ($this->state as $name => $state) {
-                if ($this->isKeepWorthyState($params, $name)) {
-                    $params->set($name, $state);
-                }
-            }
-
-            return $target;
-        }
 
         $box = $this->name;
 
@@ -217,7 +208,7 @@ class Wrapper {
         $element->setAttribute($attributeName, $url->toString());
     }
 
-    private function isKeepWorthyState(Map $params, $iName) {
+    protected function isKeepWorthyState(Map $params, $iName) {
         return !$params->has(Box::$TARGET_KEY)
         && $iName != Box::$PRIMARY_TARGET_KEY
         && substr($iName, 0, strlen(self::$PREFIX)) == self::$PREFIX
