@@ -12,6 +12,8 @@ use watoki\dom\Printer;
 
 class Wrapper {
 
+    public static $PREFIX = '_';
+
     private static $formElements = array(
         'input',
         'textarea',
@@ -139,7 +141,7 @@ class Wrapper {
 
                 $url = Url::fromString('?' . $name->getValue() . '=0');
                 $wrapped = Url::fromString('');
-                $wrapped->getParameters()->set($this->name, $url->getParameters());
+                $wrapped->getParameters()->set(self::$PREFIX . $this->name, $url->getParameters());
 
                 $child->setAttribute('name', substr($wrapped->toString(), 1, -2));
             }
@@ -164,11 +166,11 @@ class Wrapper {
 
         $wrapped = Url::fromString('');
         foreach ($this->state as $name => $state) {
-            if ($name !== $box) {
+            if ($name !== self::$PREFIX . $box) {
                 $wrapped->getParameters()->set($name, $state);
             }
         }
-        $wrapped->getParameters()->set($box, $params);
+        $wrapped->getParameters()->set(self::$PREFIX . $box, $params);
         $wrapped->getParameters()->set(Box::$PRIMARY_TARGET_KEY, $this->name);
         return $wrapped;
     }

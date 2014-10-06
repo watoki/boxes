@@ -4,6 +4,7 @@ namespace spec\watoki\boxes\fixtures;
 use watoki\boxes\Box;
 use watoki\boxes\BoxCollection;
 use watoki\boxes\BoxContainer;
+use watoki\boxes\Wrapper;
 use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
 use watoki\deli\Path;
@@ -70,12 +71,10 @@ class TestBox extends BoxContainer {
 
     private function render($model) {
         foreach ($model as $key => $value) {
-            if (is_array($value)) {
-                if (is_array(end($value))) {
-                    $$key = json_encode($value);
-                } else {
-                    $$key = implode(' ', $value);
-                }
+            if (substr($key, 0, 1) == Wrapper::$PREFIX) {
+                continue;
+            } else if (is_array($value)) {
+                $$key = implode(' ', $value);
             } else {
                 $$key = $value;
             }

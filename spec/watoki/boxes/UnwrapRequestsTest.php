@@ -12,6 +12,7 @@ class UnwrapRequestsTest extends Specification {
     function testEmptyRequest() {
         $this->box->given_Responds('outer', 'Hello $inner');
         $this->box->given_Responds('inner', 'Inner');
+
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -22,9 +23,10 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Responds('outer', 'Hello $inner');
         $this->box->given_Responds('inner', 'Inner');
         $this->box->given_Responds('other', 'Other');
+
         $this->box->given_Contains('outer', 'inner');
 
-        $this->box->givenTheRequestArgument_Is('inner/!', 'other');
+        $this->box->givenTheRequestArgument_Is('_inner/!', 'other');
         $this->box->givenAPathFrom_To('outer', 'other');
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -34,9 +36,11 @@ class UnwrapRequestsTest extends Specification {
     function testUnwrapArguments() {
         $this->box->given_Responds('outer', 'Hello $inner');
         $this->box->given_Responds('inner', '$one $two');
+
         $this->box->given_Contains('outer', 'inner');
-        $this->box->givenTheRequestArgument_Is('inner/one', 'My');
-        $this->box->givenTheRequestArgument_Is('inner/two', 'World');
+
+        $this->box->givenTheRequestArgument_Is('_inner/one', 'My');
+        $this->box->givenTheRequestArgument_Is('_inner/two', 'World');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('Hello My World');
@@ -46,10 +50,12 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Responds('one', 'Hello $two');
         $this->box->given_Responds('two', '$dos $three');
         $this->box->given_Responds('three', '$tres');
+
         $this->box->given_Contains('one', 'two');
         $this->box->given_Contains('two', 'three');
-        $this->box->givenTheRequestArgument_Is('two/three/tres', 'World');
-        $this->box->givenTheRequestArgument_Is('two/dos', 'There');
+
+        $this->box->givenTheRequestArgument_Is('_two/_three/tres', 'World');
+        $this->box->givenTheRequestArgument_Is('_two/dos', 'There');
 
         $this->box->whenIGetTheResponseFrom('one');
         $this->box->thenTheResponseShouldBe('Hello There World');
@@ -64,8 +70,8 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'baz'));
         $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'bar'));
 
-        $this->box->givenTheRequestArgument_Is('list/0/foo', 'One');
-        $this->box->givenTheRequestArgument_Is('list/1/foo', 'Two');
+        $this->box->givenTheRequestArgument_Is('_list/_0/foo', 'One');
+        $this->box->givenTheRequestArgument_Is('_list/_1/foo', 'Two');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('One Two bar');
@@ -82,7 +88,7 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Contains('bar', 'baz');
 
         $this->box->givenTheMethodIs('bar');
-        $this->box->givenTheRequestArgument_Is('bar/baz/do', 'foo');
+        $this->box->givenTheRequestArgument_Is('_bar/_baz/do', 'foo');
 
         $this->box->whenIGetTheResponseFrom('root');
         $this->box->thenTheResponseShouldBe('Hello my dear foo!');
@@ -115,7 +121,7 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_HasIn_A_With('o', 'inner', 'item', array('name' => 'Two'));
 
         $this->box->givenTheRequestArgument_Is('_', 'inner');
-        $this->box->givenTheRequestArgument_Is('inner/_', '1');
+        $this->box->givenTheRequestArgument_Is('_inner/_', '1');
 
         $this->box->whenIGetTheResponseFrom('o');
         $this->box->thenTheResponseShouldBe('One Two');
@@ -134,7 +140,7 @@ class UnwrapRequestsTest extends Specification {
 
         $this->box->givenAPathFrom_To('o', 'c');
 
-        $this->box->givenTheRequestArgument_Is('a/foo', 'bar');
+        $this->box->givenTheRequestArgument_Is('_a/foo', 'bar');
 
         $this->box->whenIGetTheResponseFrom('o');
         $this->box->thenTheResponseShouldBe('bar -> baz');

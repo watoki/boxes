@@ -60,8 +60,8 @@ class BoxCollection implements Dispatching {
         $next = $request->copy();
         $next->getArguments()->clear();
 
-        if ($request->getArguments()->has($name)) {
-            $next->getArguments()->merge($request->getArguments()->get($name));
+        if ($request->getArguments()->has(Wrapper::$PREFIX . $name)) {
+            $next->getArguments()->merge($request->getArguments()->get(Wrapper::$PREFIX . $name));
         }
         return $next;
     }

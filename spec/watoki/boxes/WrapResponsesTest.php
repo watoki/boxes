@@ -25,7 +25,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('Go <a href="?inner[!]=here&_=inner">Here</a>');
+        $this->box->thenTheResponseShouldBe('Go <a href="?_inner[!]=here&_=inner">Here</a>');
     }
 
     function testLinkArguments() {
@@ -34,7 +34,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('Go <a href="?inner[foo]=bar&_=inner">Here</a>');
+        $this->box->thenTheResponseShouldBe('Go <a href="?_inner[foo]=bar&_=inner">Here</a>');
     }
 
     function testLinkTargetsOtherBox() {
@@ -43,7 +43,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('Go <a href="?other[!]=there&_=inner">Two</a>');
+        $this->box->thenTheResponseShouldBe('Go <a href="?_other[!]=there&_=inner">Two</a>');
     }
 
     function testRecursiveWrapping() {
@@ -56,8 +56,8 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('one');
         $this->box->thenTheResponseShouldBe(
-                'One <a href="?two[!]=here&two[foo]=bar&_=two">Two</a> ' .
-                '<a href="?two[three][!]=there&two[three][me]=you&two[_]=three&_=two">Three</a>');
+                'One <a href="?_two[!]=here&_two[foo]=bar&_=two">Two</a> ' .
+                '<a href="?_two[_three][!]=there&_two[_three][me]=you&_two[_]=three&_=two">Three</a>');
     }
 
     function testFormWithoutActionAndMethod() {
@@ -66,7 +66,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('<form action="?inner[do]=post&_=inner"></form>');
+        $this->box->thenTheResponseShouldBe('<form action="?_inner[do]=post&_=inner"></form>');
     }
 
     function testFormWithAction() {
@@ -82,11 +82,11 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('
-            <form action="?inner[!]=there&inner[me]=you&inner[do]=get&_=inner" method="get">
-                <input name="inner[foo]" value="bar"/>
-                <textarea name="inner[foo][one]"></textarea>
-                <select name="inner[foo][two]"></select>
-                <button name="inner[do]" value="that">Go</button>
+            <form action="?_inner[!]=there&_inner[me]=you&_inner[do]=get&_=inner" method="get">
+                <input name="_inner[foo]" value="bar"/>
+                <textarea name="_inner[foo][one]"></textarea>
+                <select name="_inner[foo][two]"></select>
+                <button name="_inner[do]" value="that">Go</button>
             </form>');
     }
 
@@ -132,18 +132,18 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('<p>Hello</p>
-                <div><form action="?inner[!]=here&inner[do]=post&_=inner">
-                    <a href="?inner[!]=there&inner[one]=two&_=inner">Click</a>
+                <div><form action="?_inner[!]=here&_inner[do]=post&_=inner">
+                    <a href="?_inner[!]=there&_inner[one]=two&_=inner">Click</a>
                 </form></div>');
     }
 
     function testKeepState() {
-        $this->box->given_Responds('a', '<a href=""></a> $b $c');
-        $this->box->given_Responds('b', '<a href=""></a> $f');
-        $this->box->given_Responds('c', '<a href=""></a> $d $e');
-        $this->box->given_Responds('d', '<a href=""></a>');
-        $this->box->given_Responds('e', '<a href=""></a>');
-        $this->box->given_Responds('f', '<a href=""></a>');
+        $this->box->given_Responds('a', '<a href="">A</a> $b $c');
+        $this->box->given_Responds('b', '<a href="">B</a> $f');
+        $this->box->given_Responds('c', '<a href="">C</a> $d $e');
+        $this->box->given_Responds('d', '<a href="">D</a>');
+        $this->box->given_Responds('e', '<a href="">E</a>');
+        $this->box->given_Responds('f', '<a href="">F</a>');
 
         $this->box->given_Contains('a', 'b');
         $this->box->given_Contains('a', 'c');
@@ -152,20 +152,20 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('c', 'e');
 
         $this->box->givenTheRequestArgument_Is('foo', 'A');
-        $this->box->givenTheRequestArgument_Is('b/foo', 'B');
-        $this->box->givenTheRequestArgument_Is('b/f/foo', 'F');
-        $this->box->givenTheRequestArgument_Is('c/foo', 'C');
-        $this->box->givenTheRequestArgument_Is('c/d/foo', 'D');
-        $this->box->givenTheRequestArgument_Is('c/e/foo', 'E');
+        $this->box->givenTheRequestArgument_Is('_b/foo', 'B');
+        $this->box->givenTheRequestArgument_Is('_b/_f/foo', 'F');
+        $this->box->givenTheRequestArgument_Is('_c/foo', 'C');
+        $this->box->givenTheRequestArgument_Is('_c/_d/foo', 'D');
+        $this->box->givenTheRequestArgument_Is('_c/_e/foo', 'E');
 
         $this->box->whenIGetTheResponseFrom('a');
         $this->box->thenTheResponseShouldBe(
-                '<a href=""></a> ' .
-                '<a href="?foo=A&c[foo]=C&c[d][foo]=D&c[e][foo]=E&_=b"></a> ' .
-                '<a href="?foo=A&c[foo]=C&c[d][foo]=D&c[e][foo]=E&b[foo]=B&b[_]=f&_=b"></a> ' .
-                '<a href="?foo=A&b[foo]=B&b[f][foo]=F&_=c"></a> ' .
-                '<a href="?foo=A&b[foo]=B&b[f][foo]=F&c[foo]=C&c[e][foo]=E&c[_]=d&_=c"></a> ' .
-                '<a href="?foo=A&b[foo]=B&b[f][foo]=F&c[foo]=C&c[d][foo]=D&c[_]=e&_=c"></a>');
+                '<a href="">A</a> ' .
+                '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_=b">B</a> ' .
+                '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_b[foo]=B&_b[_]=f&_=b">F</a> ' .
+                '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_=c">C</a> ' .
+                '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_e][foo]=E&_c[_]=d&_=c">D</a> ' .
+                '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_d][foo]=D&_c[_]=e&_=c">E</a>');
     }
 
     function testAssets() {
@@ -181,7 +181,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->givenAPathFrom_To('outer', 'other');
-        $this->box->givenTheRequestArgument_Is('inner/!', 'other');
+        $this->box->givenTheRequestArgument_Is('_inner/!', 'other');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('
@@ -246,9 +246,9 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe(
-                '<a href="?inner[list][0][foo]=bar&inner[list][_]=0&inner[_]=list&_=inner">One</a> ' .
-                '<a href="?inner[list][1][foo]=bar&inner[list][_]=1&inner[_]=list&_=inner">Two</a> ' .
-                '<a href="?inner[list][2][foo]=bar&inner[list][_]=2&inner[_]=list&_=inner">Three</a>');
+                '<a href="?_inner[_list][_0][foo]=bar&_inner[_list][_]=0&_inner[_]=list&_=inner">One</a> ' .
+                '<a href="?_inner[_list][_1][foo]=bar&_inner[_list][_]=1&_inner[_]=list&_=inner">Two</a> ' .
+                '<a href="?_inner[_list][_2][foo]=bar&_inner[_list][_]=2&_inner[_]=list&_=inner">Three</a>');
     }
 
     function testListWithHeaders() {
