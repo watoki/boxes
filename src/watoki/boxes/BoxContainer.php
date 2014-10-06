@@ -63,6 +63,10 @@ abstract class BoxContainer extends Container {
         return $collection;
     }
 
+    protected function setRoute($path, $class) {
+        $this->dynamicRouter->setObject($path, $class, $this->factory);
+    }
+
     protected function getBoxes() {
         return $this->boxes->getModel();
     }

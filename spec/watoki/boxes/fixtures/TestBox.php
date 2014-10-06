@@ -35,7 +35,7 @@ class TestBox extends BoxContainer {
     protected function registerBoxes() {}
 
     public function add($name, BoxContainer $box, $args) {
-        $this->setRoute($name, $box);
+        $this->setRouteTo($name, $box);
         $this->boxes->set($name, new Box(Path::fromString($name), new Map($args)));
     }
 
@@ -44,11 +44,11 @@ class TestBox extends BoxContainer {
     }
 
     public function addToCollection($collection, $name, BoxContainer $box, $args) {
-        $this->setRoute($name, $box);
+        $this->setRouteTo($name, $box);
         $this->collections[$collection]->add(new Box(Path::fromString($name), new Map($args)));
     }
 
-    private function setRoute($name, BoxContainer $box) {
+    private function setRouteTo($name, BoxContainer $box) {
         $this->router->set(Path::fromString($name), ObjectTarget::factory($this->factory, $box));
     }
 
