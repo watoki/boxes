@@ -43,7 +43,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('Go <a href="?_other[!]=there&_=inner">Two</a>');
+        $this->box->thenTheResponseShouldBe('Go <a href="?_other[!]=there&_=other">Two</a>');
     }
 
     function testRecursiveWrapping() {
@@ -160,12 +160,56 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('a');
         $this->box->thenTheResponseShouldBe(
-                '<a href="">A</a> ' .
-                '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_=b">B</a> ' .
+                '<a href="">A</a> ' . // The BoxContainer itself is not wrapped. Should it?
+                '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_b[_f][foo]=F&_=b">B</a> ' .
                 '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_b[foo]=B&_b[_]=f&_=b">F</a> ' .
-                '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_=c">C</a> ' .
+                '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[_d][foo]=D&_c[_e][foo]=E&_=c">C</a> ' .
                 '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_e][foo]=E&_c[_]=d&_=c">D</a> ' .
                 '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_d][foo]=D&_c[_]=e&_=c">E</a>');
+    }
+
+    function testDoNotKeepPrimaryTargetInState() {
+        $this->box->given_Responds('o', '$a');
+        $this->box->given_Responds('a', '<a href="">A</a> $b');
+        $this->box->given_Responds('b', '<a href="">B</a>');
+
+        $this->box->given_Contains('o', 'a');
+        $this->box->given_Contains('a', 'b');
+
+        $this->box->givenTheRequestArgument_Is('_a/_', 'b');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBe('<a href="?_=a">A</a> <a href="?_a[_]=b&_=a">B</a>');
+    }
+
+    function testDoNotKeepStateIfTargetChanges() {
+        $this->box->given_Responds('o', '$a');
+        $this->box->given_Responds('a', '<a href="y" target="x">A</a> $b');
+        $this->box->given_Responds('b', '<a href="">B</a>');
+
+        $this->box->given_Contains('o', 'a');
+        $this->box->given_Contains('a', 'b');
+
+        $this->box->givenTheRequestArgument_Is('_a/_b/foo', 'A');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBe('<a href="?_x[!]=y&_=x">A</a> <a href="?_a[_]=b&_=a">B</a>');
+    }
+
+    function testDoNotKeepChildStateIfTargetChanges() {
+        $this->box->given_Responds('o', '$a $b');
+        $this->box->given_Responds('a', '<a href="x" target="b">A</a>');
+        $this->box->given_Responds('b', '$c');
+        $this->box->given_Responds('c', 'C');
+
+        $this->box->given_Contains('o', 'a');
+        $this->box->given_Contains('o', 'b');
+        $this->box->given_Contains('b', 'c');
+
+        $this->box->givenTheRequestArgument_Is('_b/_c/foo', 'A');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBe('<a href="?_b[!]=x&_=b">A</a> C');
     }
 
     function testAssets() {

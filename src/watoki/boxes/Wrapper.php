@@ -167,15 +167,29 @@ class Wrapper {
         $wrapped = Url::fromString('');
         foreach ($this->state as $name => $state) {
             if ($name !== self::$PREFIX . $box) {
-                $wrapped->getParameters()->set($name, $state);
+                if (!$params->has(Box::$TARGET_KEY)) {
+                    $wrapped->getParameters()->set($name, $state);
+                }
+            } else {
+                foreach ($state as $iName => $iState) {
+                    if (!$params->has(Box::$TARGET_KEY)
+                            && $iName != Box::$PRIMARY_TARGET_KEY
+                            && substr($iName, 0, strlen(self::$PREFIX)) == self::$PREFIX
+                            && (!$params->has(Box::$PRIMARY_TARGET_KEY)
+                                    || self::$PREFIX . $params->get(Box::$PRIMARY_TARGET_KEY) != $iName)
+                    ) {
+                        $params->set($iName, $iState);
+                    }
+                }
             }
         }
         $wrapped->getParameters()->set(self::$PREFIX . $box, $params);
-        $wrapped->getParameters()->set(Box::$PRIMARY_TARGET_KEY, $this->name);
+        $wrapped->getParameters()->set(Box::$PRIMARY_TARGET_KEY, $box);
         return $wrapped;
     }
 
-    private function wrapAsset(Element $element, $attributeName) {
+    private
+    function wrapAsset(Element $element, $attributeName) {
         $attribute = $element->getAttribute($attributeName);
         if (!$attribute) {
             return;
