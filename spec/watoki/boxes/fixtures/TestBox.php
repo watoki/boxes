@@ -9,7 +9,6 @@ use watoki\curir\delivery\WebRequest;
 use watoki\deli\Path;
 use watoki\deli\router\DynamicRouter;
 use watoki\deli\target\ObjectTarget;
-use watoki\deli\target\RespondingTarget;
 use watoki\factory\Factory;
 
 class TestBox extends BoxContainer {
@@ -32,6 +31,8 @@ class TestBox extends BoxContainer {
         $this->router->set(new Path(), ObjectTarget::factory($this->factory, $this));
     }
 
+    protected function registerBoxes() {}
+
     public function add($name, BoxContainer $box, $args) {
         $this->setRoute($name, $box);
         $this->boxes->set($name, new Box(Path::fromString($name), new Map($args)));
@@ -48,7 +49,7 @@ class TestBox extends BoxContainer {
     }
 
     private function setRoute($name, BoxContainer $box) {
-        $this->router->set(Path::fromString($name), RespondingTarget::factory($this->factory, $box));
+        $this->router->set(Path::fromString($name), ObjectTarget::factory($this->factory, $box));
     }
 
     /**
@@ -70,7 +71,11 @@ class TestBox extends BoxContainer {
     private function render($model) {
         foreach ($model as $key => $value) {
             if (is_array($value)) {
-                $$key = implode(' ', $value);
+                if (is_array(end($value))) {
+                    $$key = json_encode($value);
+                } else {
+                    $$key = implode(' ', $value);
+                }
             } else {
                 $$key = $value;
             }
@@ -79,5 +84,4 @@ class TestBox extends BoxContainer {
         $code = $this->sideEffect . 'return "' . $template . '";';
         return eval($code);
     }
-
 }

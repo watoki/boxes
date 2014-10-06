@@ -26,14 +26,14 @@ class Wrapper {
     /** @var string */
     private $name;
 
-    /** @var \watoki\collections\Map */
-    private $state;
-
     /** @var \watoki\deli\Path */
     private $path;
 
     /** @var Set */
     private $headElements;
+
+    /** @var Map */
+    private $state;
 
     function __construct($name, Path $path, Map $state) {
         $this->name = $name;
@@ -163,7 +163,11 @@ class Wrapper {
         $params->merge($target->getParameters());
 
         $wrapped = Url::fromString('');
-        $wrapped->getParameters()->merge($this->state);
+        foreach ($this->state as $name => $state) {
+            if ($name !== $box) {
+                $wrapped->getParameters()->set($name, $state);
+            }
+        }
         $wrapped->getParameters()->set($box, $params);
         $wrapped->getParameters()->set(Box::$PRIMARY_TARGET_KEY, $this->name);
         return $wrapped;

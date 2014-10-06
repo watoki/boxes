@@ -60,8 +60,8 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Responds('inner', '$foo');
 
         $this->box->given_ContainsACollection('outer', 'list');
-        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array());
-        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array());
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'baz'));
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'baz'));
         $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'bar'));
 
         $this->box->givenTheRequestArgument_Is('list/0/foo', 'One');
@@ -104,6 +104,21 @@ class UnwrapRequestsTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('root');
         $this->box->thenTheResponseShouldBe('first comes c');
+    }
+
+    function testListAsPrimaryTarget() {
+        $this->box->given_Responds('o', '$inner');
+        $this->box->given_Responds('item', '$name');
+
+        $this->box->given_ContainsACollection('o', 'inner');
+        $this->box->given_HasIn_A_With('o', 'inner', 'item', array('name' => 'One'));
+        $this->box->given_HasIn_A_With('o', 'inner', 'item', array('name' => 'Two'));
+
+        $this->box->givenTheRequestArgument_Is('_', 'inner');
+        $this->box->givenTheRequestArgument_Is('inner/_', '1');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBe('One Two');
     }
 
     function testRedirects() {

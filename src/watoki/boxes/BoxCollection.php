@@ -17,7 +17,8 @@ class BoxCollection implements Dispatching {
     /** @var Set|Element[] */
     private $heads;
 
-    public function __construct() {
+    public function __construct($children = array()) {
+        $this->children = $children;
         $this->heads = new Set();
     }
 
@@ -48,8 +49,10 @@ class BoxCollection implements Dispatching {
             $dispatched = $child->dispatch($next, $router);
             $model = $child->getModel();
 
-            $this->model[$name] = $this->wrapModel($model, $name, $dispatched);
+            $this->model[$name] = $this->wrapModel($model, $name, $dispatched, $request);
         }
+
+        ksort($this->model);
         return $request;
     }
 
@@ -63,20 +66,19 @@ class BoxCollection implements Dispatching {
         return $next;
     }
 
-    private function wrapModel($model, $name, WrappedRequest $dispatched) {
+    private function wrapModel($model, $name, WrappedRequest $dispatched, WrappedRequest $wrapped) {
         if (is_string($model)) {
-            $model = $this->wrap($name, $model, $dispatched);
-            return $model;
+            return $this->wrap($name, $model, $dispatched, $wrapped);
         } else {
             foreach ($model as $i => $item) {
-                $model[$i] = $this->wrap($name, $item, $dispatched);
+                $model[$i] = $this->wrap($name, $item, $dispatched, $wrapped);
             }
             return $model;
         }
     }
 
-    private function wrap($name, $model, WrappedRequest $dispatched) {
-        $wrapper = new Wrapper($name, $dispatched->getTarget(), $dispatched->getOriginal()->getArguments());
+    private function wrap($name, $model, WrappedRequest $dispatched, WrappedRequest $wrapped) {
+        $wrapper = new Wrapper($name, $dispatched->getTarget(), $wrapped->getArguments());
         $model = $wrapper->wrap($model);
         $this->heads->putAll($wrapper->getHeadElements());
         return $model;

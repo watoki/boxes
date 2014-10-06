@@ -138,24 +138,34 @@ class WrapResponsesTest extends Specification {
     }
 
     function testKeepState() {
-        $this->box->given_Responds('a', '<a href="here?argA=X">A</a>');
-        $this->box->given_Responds('b', '<a href="there?argB=Y">B</a>');
-        $this->box->given_Responds('o', '$a $b');
+        $this->box->given_Responds('a', '<a href=""></a> $b $c');
+        $this->box->given_Responds('b', '<a href=""></a> $f');
+        $this->box->given_Responds('c', '<a href=""></a> $d $e');
+        $this->box->given_Responds('d', '<a href=""></a>');
+        $this->box->given_Responds('e', '<a href=""></a>');
+        $this->box->given_Responds('f', '<a href=""></a>');
 
-        $this->box->given_Contains('o', 'a');
-        $this->box->given_Contains('o', 'b');
+        $this->box->given_Contains('a', 'b');
+        $this->box->given_Contains('a', 'c');
+        $this->box->given_Contains('b', 'f');
+        $this->box->given_Contains('c', 'd');
+        $this->box->given_Contains('c', 'e');
 
-        $this->box->givenTheRequestArgument_Is('a/!', 'a');
-        $this->box->givenTheRequestArgument_Is('b/!', 'b');
-        $this->box->givenTheRequestArgument_Is('a/argA', 'A');
-        $this->box->givenTheRequestArgument_Is('a/arg2', '2');
-        $this->box->givenTheRequestArgument_Is('a/aa/arg', 'AA');
-        $this->box->givenTheRequestArgument_Is('b/argB', 'B');
+        $this->box->givenTheRequestArgument_Is('foo', 'A');
+        $this->box->givenTheRequestArgument_Is('b/foo', 'B');
+        $this->box->givenTheRequestArgument_Is('b/f/foo', 'F');
+        $this->box->givenTheRequestArgument_Is('c/foo', 'C');
+        $this->box->givenTheRequestArgument_Is('c/d/foo', 'D');
+        $this->box->givenTheRequestArgument_Is('c/e/foo', 'E');
 
-        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->whenIGetTheResponseFrom('a');
         $this->box->thenTheResponseShouldBe(
-                '<a href="?a[!]=here&a[argA]=X&b[!]=b&b[argB]=B&_=a">A</a> ' .
-                '<a href="?a[!]=a&a[argA]=A&a[arg2]=2&a[aa][arg]=AA&b[!]=there&b[argB]=Y&_=b">B</a>');
+                '<a href=""></a> ' .
+                '<a href="?foo=A&c[foo]=C&c[d][foo]=D&c[e][foo]=E&_=b"></a> ' .
+                '<a href="?foo=A&c[foo]=C&c[d][foo]=D&c[e][foo]=E&b[foo]=B&b[_]=f&_=b"></a> ' .
+                '<a href="?foo=A&b[foo]=B&b[f][foo]=F&_=c"></a> ' .
+                '<a href="?foo=A&b[foo]=B&b[f][foo]=F&c[foo]=C&c[e][foo]=E&c[_]=d&_=c"></a> ' .
+                '<a href="?foo=A&b[foo]=B&b[f][foo]=F&c[foo]=C&c[d][foo]=D&c[_]=e&_=c"></a>');
     }
 
     function testAssets() {
@@ -224,19 +234,21 @@ class WrapResponsesTest extends Specification {
     }
 
     function testBoxList() {
-        $this->box->given_Responds('outer', '$list');
-        $this->box->given_Responds('inner', '<a href="?foo=bar">$name</a>');
+        $this->box->given_Responds('outer', '$inner');
+        $this->box->given_Responds('inner', '$list');
+        $this->box->given_Responds('item', '<a href="?foo=bar">$name</a>');
 
-        $this->box->given_ContainsACollection('outer', 'list');
-        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('name' => 'One'));
-        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('name' => 'Two'));
-        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('name' => 'Three'));
+        $this->box->given_Contains('outer', 'inner');
+        $this->box->given_ContainsACollection('inner', 'list');
+        $this->box->given_HasIn_A_With('inner', 'list', 'item', array('name' => 'One'));
+        $this->box->given_HasIn_A_With('inner', 'list', 'item', array('name' => 'Two'));
+        $this->box->given_HasIn_A_With('inner', 'list', 'item', array('name' => 'Three'));
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe(
-                '<a href="?list[0][foo]=bar&list[_]=0&_=list">One</a> ' .
-                '<a href="?list[1][foo]=bar&list[_]=1&_=list">Two</a> ' .
-                '<a href="?list[2][foo]=bar&list[_]=2&_=list">Three</a>');
+                '<a href="?inner[list][0][foo]=bar&inner[list][_]=0&inner[_]=list&_=inner">One</a> ' .
+                '<a href="?inner[list][1][foo]=bar&inner[list][_]=1&inner[_]=list&_=inner">Two</a> ' .
+                '<a href="?inner[list][2][foo]=bar&inner[list][_]=2&inner[_]=list&_=inner">Three</a>');
     }
 
     function testListWithHeaders() {
@@ -260,7 +272,6 @@ class WrapResponsesTest extends Specification {
                     <title>Outer</title>
                 <script src="inner/one"/><script src="inner/bar"/></head>
             </html>');
-
     }
 
 }
