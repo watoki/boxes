@@ -15,14 +15,14 @@ class Wrapper {
     public static $PREFIX = '_';
 
     private static $formElements = array(
-        'input',
-        'textarea',
-        'button',
-        'select'
+            'input',
+            'textarea',
+            'button',
+            'select'
     );
 
     private static $ignoredHeadElements = array(
-        'title'
+            'title'
     );
 
     /** @var string */
@@ -172,12 +172,7 @@ class Wrapper {
                 }
             } else {
                 foreach ($state as $iName => $iState) {
-                    if (!$params->has(Box::$TARGET_KEY)
-                            && $iName != Box::$PRIMARY_TARGET_KEY
-                            && substr($iName, 0, strlen(self::$PREFIX)) == self::$PREFIX
-                            && (!$params->has(Box::$PRIMARY_TARGET_KEY)
-                                    || self::$PREFIX . $params->get(Box::$PRIMARY_TARGET_KEY) != $iName)
-                    ) {
+                    if ($this->isKeepWorthyState($params, $iName)) {
                         $params->set($iName, $iState);
                     }
                 }
@@ -203,5 +198,13 @@ class Wrapper {
 
         $url->setPath($path);
         $element->setAttribute($attributeName, $url->toString());
+    }
+
+    private function isKeepWorthyState(Map $params, $iName) {
+        return !$params->has(Box::$TARGET_KEY)
+        && $iName != Box::$PRIMARY_TARGET_KEY
+        && substr($iName, 0, strlen(self::$PREFIX)) == self::$PREFIX
+        && (!$params->has(Box::$PRIMARY_TARGET_KEY)
+                || self::$PREFIX . $params->get(Box::$PRIMARY_TARGET_KEY) != $iName);
     }
 }

@@ -85,7 +85,7 @@ abstract class BoxContainer extends Container {
     public function after($return, WebRequest $request) {
         $response = parent::after($return, $request);
 
-        $response->setBody($this->boxes->mergeHeaders($response->getBody()));
+        $response->setBody($this->boxes->wrapContainer($response->getBody()));
         return $response;
     }
 
