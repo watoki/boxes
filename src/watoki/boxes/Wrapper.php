@@ -40,7 +40,7 @@ class Wrapper {
     function __construct($name, Path $path, Map $state) {
         $this->name = $name;
         $this->path = $path;
-        $this->state = $state;
+        $this->state = $this->cleanState($state);
         $this->headElements = new Set();
     }
 
@@ -163,6 +163,9 @@ class Wrapper {
 
         if ($element->getAttribute('target')) {
             $box = $element->getAttribute('target')->getValue();
+            if (substr($box, 0, 1) == '_') {
+                return $target;
+            }
             $element->getAttributes()->removeElement($element->getAttribute('target'));
         }
 
@@ -173,6 +176,8 @@ class Wrapper {
         $params->merge($target->getParameters());
 
         $wrapped = Url::fromString('');
+        $wrapped->setFragment($target->getFragment());
+
         foreach ($this->state as $name => $state) {
             if ($name !== self::$PREFIX . $box) {
                 if (!$params->has(Box::$TARGET_KEY)) {
@@ -191,8 +196,7 @@ class Wrapper {
         return $wrapped;
     }
 
-    private
-    function wrapAsset(Element $element, $attributeName) {
+    private function wrapAsset(Element $element, $attributeName) {
         $attribute = $element->getAttribute($attributeName);
         if (!$attribute) {
             return;
@@ -214,5 +218,30 @@ class Wrapper {
         && substr($iName, 0, strlen(self::$PREFIX)) == self::$PREFIX
         && (!$params->has(Box::$PRIMARY_TARGET_KEY)
                 || self::$PREFIX . $params->get(Box::$PRIMARY_TARGET_KEY) != $iName);
+    }
+
+    protected function isGet(Map $params) {
+        return !$params->has(WebRequest::$METHOD_KEY) || $params->get(WebRequest::$METHOD_KEY) == WebRequest::METHOD_GET;
+    }
+
+    protected function cleanState(Map $params) {
+        $clean = new Map();
+        if (!$this->isGet($params)) {
+            foreach ($params as $key => $value) {
+                if (substr($key, 0, strlen(self::$PREFIX)) == self::$PREFIX) {
+                    $clean->set($key, $value);
+                }
+            }
+        } else {
+            $clean = $params->copy();
+        }
+
+        foreach ($clean as $key => $value) {
+            if ($value instanceof Map) {
+                $clean->set($key, $this->cleanState($value));
+            }
+        }
+
+        return $clean;
     }
 }

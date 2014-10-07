@@ -6,8 +6,6 @@ use watoki\curir\Container;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\Responder;
 use watoki\deli\Path;
-use watoki\deli\router\DynamicRouter;
-use watoki\deli\router\MultiRouter;
 use watoki\factory\Factory;
 
 abstract class BoxContainer extends Container {
@@ -15,18 +13,12 @@ abstract class BoxContainer extends Container {
     /** @var BoxCollection */
     protected $boxes;
 
-    /** @var DynamicRouter */
-    protected $dynamicRouter;
-
     /**
      * @param Factory $factory <-
      */
     function __construct(Factory $factory) {
         parent::__construct($factory);
         $this->boxes = new BoxCollection();
-
-        $this->dynamicRouter = new DynamicRouter();
-        $this->router = new MultiRouter(array($this->dynamicRouter, $this->router));
 
         $this->registerBoxes();
     }
@@ -61,10 +53,6 @@ abstract class BoxContainer extends Container {
         $collection = new BoxCollection($boxes);
         $this->boxes->set($name, $collection);
         return $collection;
-    }
-
-    protected function setRoute($path, $class) {
-        $this->dynamicRouter->setObject($path, $class, $this->factory);
     }
 
     protected function getBoxes() {

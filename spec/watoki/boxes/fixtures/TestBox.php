@@ -64,6 +64,14 @@ class TestBox extends BoxContainer {
         return $this->render($model);
     }
 
+    /**
+     * @param WebRequest $request <-
+     * @return string
+     */
+    public function doNotGet(WebRequest $request) {
+        return $this->doGet($request);
+    }
+
     public function doFoo() {
         return 'foo!';
     }

@@ -46,6 +46,15 @@ class WrapResponsesTest extends Specification {
         $this->box->thenTheResponseShouldBe('Go <a href="?_other[!]=there&_=other">Two</a>');
     }
 
+    function testDoNotWrapLinksWithOtherTargets() {
+        $this->box->given_Responds('inner', '<a href="there" target="_other">Two</a>');
+        $this->box->given_Responds('outer', 'Go $inner');
+        $this->box->given_Contains('outer', 'inner');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('Go <a href="there" target="_other">Two</a>');
+    }
+
     function testRecursiveWrapping() {
         $this->box->given_Responds('one', 'One $two');
         $this->box->given_Responds('two', '<a href="here?foo=bar">Two</a> $three');
@@ -72,20 +81,20 @@ class WrapResponsesTest extends Specification {
     function testFormWithAction() {
         $this->box->given_Responds('outer', '$inner');
         $this->box->given_Responds('inner', '
-            <form action="there?me=you" method="get">
+            <form action="there?me=you#here" method="get">
                 <input name="foo" value="bar"/>
                 <textarea name="foo[one]"></textarea>
-                <select name="foo[two]"></select>
+                <select id="here" name="foo[two]"></select>
                 <button name="do" value="that">Go</button>
             </form>');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('
-            <form action="?_inner[!]=there&_inner[me]=you&_inner[do]=get&_=inner" method="get">
+            <form action="?_inner[!]=there&_inner[me]=you&_inner[do]=get&_=inner#here" method="get">
                 <input name="_inner[foo]" value="bar"/>
                 <textarea name="_inner[foo][one]"></textarea>
-                <select name="_inner[foo][two]"></select>
+                <select id="here" name="_inner[foo][two]"></select>
                 <button name="_inner[do]" value="that">Go</button>
             </form>');
     }
@@ -124,7 +133,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Responds('outer', '$inner');
         $this->box->given_Responds('inner', '
             <html><body><p>Hello</p>
-                <div><form action="here">
+                <div><form action="here?foo=bar">
                     <a href="there?one=two">Click</a>
                 </form></div>
             </body></html>');
@@ -132,7 +141,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('<p>Hello</p>
-                <div><form action="?_inner[!]=here&_inner[do]=post&_=inner">
+                <div><form action="?_inner[!]=here&_inner[foo]=bar&_inner[do]=post&_=inner">
                     <a href="?_inner[!]=there&_inner[one]=two&_=inner">Click</a>
                 </form></div>');
     }
@@ -166,6 +175,22 @@ class WrapResponsesTest extends Specification {
                 '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[_d][foo]=D&_c[_e][foo]=E&_=c">C</a> ' .
                 '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_e][foo]=E&_c[_]=d&_=c">D</a> ' .
                 '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_d][foo]=D&_c[_]=e&_=c">E</a>');
+    }
+
+    function testDoNotKeepStateOfMethodsOtherThanGet() {
+        $this->box->given_Responds('o', '<a href="">O</a> $a');
+        $this->box->given_Responds('a', '<a href="">A</a> $b');
+        $this->box->given_Responds('b', '<a href="">B</a>');
+
+        $this->box->given_Contains('o', 'a');
+        $this->box->given_Contains('a', 'b');
+
+        $this->box->givenTheRequestArgument_Is('_a/foo', 'bar');
+        $this->box->givenTheRequestArgument_Is('_a/do', 'notGet');
+        $this->box->givenTheRequestArgument_Is('_a/_b/foo', 'bar');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBe('<a href="?_a[_b][foo]=bar">O</a> <a href="?_a[_b][foo]=bar&_=a">A</a> <a href="?_a[_]=b&_=a">B</a>');
     }
 
     function testDoNotKeepPrimaryTargetInState() {
@@ -224,16 +249,16 @@ class WrapResponsesTest extends Specification {
 
         $this->box->given_Contains('outer', 'inner');
 
-        $this->box->givenAPathFrom_To('outer', 'other');
-        $this->box->givenTheRequestArgument_Is('_inner/!', 'other');
+        $this->box->givenAPath_From_To('that/path', 'outer', 'other');
+        $this->box->givenTheRequestArgument_Is('_inner/!', 'that/path');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('
-            <link href="other/some/favico.png" rel="icon" type="image/png"/>
+            <link href="that/some/favico.png" rel="icon" type="image/png"/>
             <link href="my/styles.css" rel="stylesheet"/>
-            <script src="other/some/script.js"/>
+            <script src="that/some/script.js"/>
             <script src="/absolute/path.js"/>
-            <img src="other/some/pic.jpg"/>');
+            <img src="that/some/pic.jpg"/>');
     }
 
     function testMergeHead() {
@@ -251,7 +276,7 @@ class WrapResponsesTest extends Specification {
                 <head>
                     <title>I am ignored</title>
                     <script src="script.js"/>
-                    <script src="../duplicate.js"/>
+                    <script src="duplicate.js"/>
                 </head>
             </html>');
 
@@ -264,7 +289,7 @@ class WrapResponsesTest extends Specification {
                     <title>I stay</title>
                     <script src="outer/script.js"/>
                     <script src="duplicate.js"/>
-                <script src="inner/script.js"/></head>
+                <script src="script.js"/></head>
             </html>');
     }
 
@@ -314,7 +339,7 @@ class WrapResponsesTest extends Specification {
             <html>
                 <head>
                     <title>Outer</title>
-                <script src="inner/one"/><script src="inner/bar"/></head>
+                <script src="one"/><script src="bar"/></head>
             </html>');
     }
 

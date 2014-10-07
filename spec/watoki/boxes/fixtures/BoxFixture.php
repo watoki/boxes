@@ -51,7 +51,11 @@ class BoxFixture extends Fixture {
     }
 
     public function givenAPathFrom_To($start, $target) {
-        $this->boxes[$start]->router->set(Path::fromString($target),
+        $this->givenAPath_From_To($target, $start, $target);
+    }
+
+    public function givenAPath_From_To($path, $start, $target) {
+        $this->boxes[$start]->router->set(Path::fromString($path),
             RespondingTarget::factory($this->spec->factory, $this->boxes[$target]));
     }
 

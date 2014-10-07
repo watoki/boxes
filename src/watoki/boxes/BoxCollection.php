@@ -85,7 +85,10 @@ class BoxCollection implements Dispatching {
     }
 
     private function wrap($name, $model, WrappedRequest $dispatched, WrappedRequest $wrapped) {
-        $wrapper = new Wrapper($name, $dispatched->getTarget(), $wrapped->getArguments());
+        $path = $dispatched->getTarget()->copy();
+        $path->pop();
+
+        $wrapper = new Wrapper($name, $path, $wrapped->getArguments());
         $model = $wrapper->wrap($model);
         $this->heads->putAll($wrapper->getHeadElements());
         return $model;
