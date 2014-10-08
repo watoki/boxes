@@ -74,8 +74,10 @@ class WrapResponsesTest extends Specification {
         $this->box->givenTheBoxContainer_Responding('inner', '<form></form>');
         $this->box->given_Contains('outer', 'inner');
 
+        $this->box->givenTheRequestArgument_Is('_some/key', 'foo');
+
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('<form action="?_inner[do]=post&_=inner"></form>');
+        $this->box->thenTheResponseShouldBe('<form action="?_some[key]=foo&_inner[do]=post&_=inner"></form>');
     }
 
     function testFormWithAction() {

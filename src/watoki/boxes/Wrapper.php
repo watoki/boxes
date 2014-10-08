@@ -130,9 +130,11 @@ class Wrapper {
 
         $wrapped = $this->wrapUrl($element, $target);
 
-        if ($wrapped->getParameters()->one() instanceof Map) {
-            $wrapped->getParameters()->one()->set(WebRequest::$METHOD_KEY, $method);
+        if ($wrapped->getParameters()->has(Box::$PRIMARY_TARGET_KEY)) {
+            $box = $wrapped->getParameters()->get(Box::$PRIMARY_TARGET_KEY);
+            $wrapped->getParameters()->get(self::$PREFIX . $box)->set(WebRequest::$METHOD_KEY, $method);
         }
+
         $element->setAttribute('action', $wrapped->toString());
 
         $this->wrapFormElements($element);
