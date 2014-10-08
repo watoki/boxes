@@ -11,8 +11,8 @@ use watoki\scrut\Specification;
 class WrapResponsesTest extends Specification {
 
     function testNoWrappingNecessary() {
-        $this->box->given_Responds('inner', 'World');
-        $this->box->given_Responds('outer', 'Hello $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', 'World');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Hello $inner');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -20,8 +20,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testLinkTarget() {
-        $this->box->given_Responds('inner', '<a href="here">Here</a>');
-        $this->box->given_Responds('outer', 'Go $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '<a href="here">Here</a>');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Go $inner');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -29,8 +29,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testLinkArguments() {
-        $this->box->given_Responds('inner', '<a href="?foo=bar">Here</a>');
-        $this->box->given_Responds('outer', 'Go $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '<a href="?foo=bar">Here</a>');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Go $inner');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -38,8 +38,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testLinkTargetsOtherBox() {
-        $this->box->given_Responds('inner', '<a href="there" target="other">Two</a>');
-        $this->box->given_Responds('outer', 'Go $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '<a href="there" target="other">Two</a>');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Go $inner');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -47,8 +47,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testDoNotWrapLinksWithOtherTargets() {
-        $this->box->given_Responds('inner', '<a href="there" target="_other">Two</a>');
-        $this->box->given_Responds('outer', 'Go $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '<a href="there" target="_other">Two</a>');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Go $inner');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -56,9 +56,9 @@ class WrapResponsesTest extends Specification {
     }
 
     function testRecursiveWrapping() {
-        $this->box->given_Responds('one', 'One $two');
-        $this->box->given_Responds('two', '<a href="here?foo=bar">Two</a> $three');
-        $this->box->given_Responds('three', '<a href="there?me=you">Three</a>');
+        $this->box->givenTheBoxContainer_Responding('one', 'One $two');
+        $this->box->givenTheBoxContainer_Responding('two', '<a href="here?foo=bar">Two</a> $three');
+        $this->box->givenTheBoxContainer_Responding('three', '<a href="there?me=you">Three</a>');
 
         $this->box->given_Contains('one', 'two');
         $this->box->given_Contains('two', 'three');
@@ -70,8 +70,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testFormWithoutActionAndMethod() {
-        $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('inner', '<form></form>');
+        $this->box->givenTheBoxContainer_Responding('outer', '$inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '<form></form>');
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -79,8 +79,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testFormWithAction() {
-        $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('inner', '
+        $this->box->givenTheBoxContainer_Responding('outer', '$inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '
             <form action="there?me=you#here" method="get">
                 <input name="foo" value="bar"/>
                 <textarea name="foo[one]"></textarea>
@@ -100,12 +100,12 @@ class WrapResponsesTest extends Specification {
     }
 
     function testWrapBody() {
-        $this->box->given_Responds('outer', '
+        $this->box->givenTheBoxContainer_Responding('outer', '
             <html>
                 <head><title>Hello World</title></head>
                 <body><p>$inner</p></body>
             </html>');
-        $this->box->given_Responds('inner', '
+        $this->box->givenTheBoxContainer_Responding('inner', '
             <html>
                 <head><title>Ignored</title></head>
                 <body><em>Hello World</em></body>
@@ -121,8 +121,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testAlwaysUnpackBody() {
-        $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('inner', '<html><body>Hello World</body></html>');
+        $this->box->givenTheBoxContainer_Responding('outer', '$inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '<html><body>Hello World</body></html>');
 
         $this->box->given_Contains('outer', 'inner');
         $this->box->whenIGetTheResponseFrom('outer');
@@ -130,8 +130,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testComplexDom() {
-        $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('inner', '
+        $this->box->givenTheBoxContainer_Responding('outer', '$inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '
             <html><body><p>Hello</p>
                 <div><form action="here?foo=bar">
                     <a href="there?one=two">Click</a>
@@ -147,12 +147,12 @@ class WrapResponsesTest extends Specification {
     }
 
     function testKeepState() {
-        $this->box->given_Responds('a', '<a href="">A</a> $b $c');
-        $this->box->given_Responds('b', '<a href="">B</a> $f');
-        $this->box->given_Responds('c', '<a href="">C</a> $d $e');
-        $this->box->given_Responds('d', '<a href="">D</a>');
-        $this->box->given_Responds('e', '<a href="">E</a>');
-        $this->box->given_Responds('f', '<a href="">F</a>');
+        $this->box->givenTheBoxContainer_Responding('a', '<a href="">A</a> $b $c');
+        $this->box->givenTheBoxContainer_Responding('b', '<a href="">B</a> $f');
+        $this->box->givenTheBoxContainer_Responding('c', '<a href="">C</a> $d $e');
+        $this->box->givenTheBoxContainer_Responding('d', '<a href="">D</a>');
+        $this->box->givenTheBoxContainer_Responding('e', '<a href="">E</a>');
+        $this->box->givenTheBoxContainer_Responding('f', '<a href="">F</a>');
 
         $this->box->given_Contains('a', 'b');
         $this->box->given_Contains('a', 'c');
@@ -178,9 +178,9 @@ class WrapResponsesTest extends Specification {
     }
 
     function testDoNotKeepStateOfMethodsOtherThanGet() {
-        $this->box->given_Responds('o', '<a href="">O</a> $a');
-        $this->box->given_Responds('a', '<a href="">A</a> $b');
-        $this->box->given_Responds('b', '<a href="">B</a>');
+        $this->box->givenTheBoxContainer_Responding('o', '<a href="">O</a> $a');
+        $this->box->givenTheBoxContainer_Responding('a', '<a href="">A</a> $b');
+        $this->box->givenTheBoxContainer_Responding('b', '<a href="">B</a>');
 
         $this->box->given_Contains('o', 'a');
         $this->box->given_Contains('a', 'b');
@@ -194,9 +194,9 @@ class WrapResponsesTest extends Specification {
     }
 
     function testDoNotKeepPrimaryTargetInState() {
-        $this->box->given_Responds('o', '$a');
-        $this->box->given_Responds('a', '<a href="">A</a> $b');
-        $this->box->given_Responds('b', '<a href="">B</a>');
+        $this->box->givenTheBoxContainer_Responding('o', '$a');
+        $this->box->givenTheBoxContainer_Responding('a', '<a href="">A</a> $b');
+        $this->box->givenTheBoxContainer_Responding('b', '<a href="">B</a>');
 
         $this->box->given_Contains('o', 'a');
         $this->box->given_Contains('a', 'b');
@@ -208,9 +208,9 @@ class WrapResponsesTest extends Specification {
     }
 
     function testDoNotKeepStateIfTargetChanges() {
-        $this->box->given_Responds('o', '$a');
-        $this->box->given_Responds('a', '<a href="y" target="a">A</a> $b');
-        $this->box->given_Responds('b', '<a href="">B</a>');
+        $this->box->givenTheBoxContainer_Responding('o', '$a');
+        $this->box->givenTheBoxContainer_Responding('a', '<a href="y" target="a">A</a> $b');
+        $this->box->givenTheBoxContainer_Responding('b', '<a href="">B</a>');
 
         $this->box->given_Contains('o', 'a');
         $this->box->given_Contains('a', 'b');
@@ -222,10 +222,10 @@ class WrapResponsesTest extends Specification {
     }
 
     function testDoNotKeepChildStateIfTargetChanges() {
-        $this->box->given_Responds('o', '$a $b');
-        $this->box->given_Responds('a', '<a href="x" target="b">A</a>');
-        $this->box->given_Responds('b', '$c');
-        $this->box->given_Responds('c', 'C');
+        $this->box->givenTheBoxContainer_Responding('o', '$a $b');
+        $this->box->givenTheBoxContainer_Responding('a', '<a href="x" target="b">A</a>');
+        $this->box->givenTheBoxContainer_Responding('b', '$c');
+        $this->box->givenTheBoxContainer_Responding('c', 'C');
 
         $this->box->given_Contains('o', 'a');
         $this->box->given_Contains('o', 'b');
@@ -238,9 +238,9 @@ class WrapResponsesTest extends Specification {
     }
 
     function testAssets() {
-        $this->box->given_Responds('inner', 'not me');
-        $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('other', '
+        $this->box->givenTheBoxContainer_Responding('inner', 'not me');
+        $this->box->givenTheBoxContainer_Responding('outer', '$inner');
+        $this->box->givenTheBoxContainer_Responding('other', '
             <link href="some/favico.png" rel="icon" type="image/png"/>
             <link href="../my/styles.css" rel="stylesheet"/>
             <script src="some/script.js"/>
@@ -262,7 +262,7 @@ class WrapResponsesTest extends Specification {
     }
 
     function testMergeHead() {
-        $this->box->given_Responds('outer', '
+        $this->box->givenTheBoxContainer_Responding('outer', '
             <html>
                 <head>
                     <title>I stay</title>
@@ -271,7 +271,7 @@ class WrapResponsesTest extends Specification {
                 </head>
             </html>
         ');
-        $this->box->given_Responds('inner', '
+        $this->box->givenTheBoxContainer_Responding('inner', '
             <html>
                 <head>
                     <title>I am ignored</title>
@@ -294,8 +294,8 @@ class WrapResponsesTest extends Specification {
     }
 
     function testBoxesWithDefaultRequestArguments() {
-        $this->box->given_Responds('outer', 'Hello $inner');
-        $this->box->given_Responds('inner', '$name');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Hello $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '$name');
         $this->box->given_Contains_With('outer', 'inner', array('name' => 'World'));
 
         $this->box->whenIGetTheResponseFrom('outer');
@@ -303,9 +303,9 @@ class WrapResponsesTest extends Specification {
     }
 
     function testBoxList() {
-        $this->box->given_Responds('outer', '$inner');
-        $this->box->given_Responds('inner', '$list');
-        $this->box->given_Responds('item', '<a href="?foo=bar">$name</a>');
+        $this->box->givenTheBoxContainer_Responding('outer', '$inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '$list');
+        $this->box->givenTheBoxContainer_Responding('item', '<a href="?foo=bar">$name</a>');
 
         $this->box->given_Contains('outer', 'inner');
         $this->box->given_ContainsACollection('inner', 'list');
@@ -321,13 +321,13 @@ class WrapResponsesTest extends Specification {
     }
 
     function testListWithHeaders() {
-        $this->box->given_Responds('outer', '
+        $this->box->givenTheBoxContainer_Responding('outer', '
             <html>
                 <head>
                     <title>Outer</title>
                 </head>
             </html>');
-        $this->box->given_Responds('inner', '<html><head><script src="$foo"/></head></html>');
+        $this->box->givenTheBoxContainer_Responding('inner', '<html><head><script src="$foo"/></head></html>');
 
         $this->box->given_ContainsACollection('outer', 'list');
         $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'one'));

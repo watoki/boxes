@@ -10,8 +10,8 @@ use watoki\scrut\Specification;
 class UnwrapRequestsTest extends Specification {
 
     function testEmptyRequest() {
-        $this->box->given_Responds('outer', 'Hello $inner');
-        $this->box->given_Responds('inner', 'Inner');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Hello $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', 'Inner');
 
         $this->box->given_Contains('outer', 'inner');
 
@@ -20,9 +20,9 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testChangeTarget() {
-        $this->box->given_Responds('outer', 'Hello $inner');
-        $this->box->given_Responds('inner', 'Inner');
-        $this->box->given_Responds('other', 'Other');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Hello $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', 'Inner');
+        $this->box->givenTheBoxContainer_Responding('other', 'Other');
 
         $this->box->given_Contains('outer', 'inner');
 
@@ -34,8 +34,8 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testUnwrapArguments() {
-        $this->box->given_Responds('outer', 'Hello $inner');
-        $this->box->given_Responds('inner', '$one $two');
+        $this->box->givenTheBoxContainer_Responding('outer', 'Hello $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', '$one $two');
 
         $this->box->given_Contains('outer', 'inner');
 
@@ -47,9 +47,9 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testRecursiveUnwrapping() {
-        $this->box->given_Responds('one', 'Hello $two');
-        $this->box->given_Responds('two', '$dos $three');
-        $this->box->given_Responds('three', '$tres');
+        $this->box->givenTheBoxContainer_Responding('one', 'Hello $two');
+        $this->box->givenTheBoxContainer_Responding('two', '$dos $three');
+        $this->box->givenTheBoxContainer_Responding('three', '$tres');
 
         $this->box->given_Contains('one', 'two');
         $this->box->given_Contains('two', 'three');
@@ -62,8 +62,8 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testBoxList() {
-        $this->box->given_Responds('outer', '$list');
-        $this->box->given_Responds('inner', '$foo');
+        $this->box->givenTheBoxContainer_Responding('outer', '$list');
+        $this->box->givenTheBoxContainer_Responding('inner', '$foo');
 
         $this->box->given_ContainsACollection('outer', 'list');
         $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'baz'));
@@ -78,10 +78,10 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testMethodFindsTarget() {
-        $this->box->given_Responds('root', 'Hello $foo $bar');
-        $this->box->given_Responds('foo', 'my');
-        $this->box->given_Responds('bar', 'dear $baz');
-        $this->box->given_Responds('baz', 'World');
+        $this->box->givenTheBoxContainer_Responding('root', 'Hello $foo $bar');
+        $this->box->givenTheBoxContainer_Responding('foo', 'my');
+        $this->box->givenTheBoxContainer_Responding('bar', 'dear $baz');
+        $this->box->givenTheBoxContainer_Responding('baz', 'World');
 
         $this->box->given_Contains('root', 'foo');
         $this->box->given_Contains('root', 'bar');
@@ -95,10 +95,10 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testPrimaryTargetIsDispatchedFirst() {
-        $this->box->given_Responds('root', '$a $b');
-        $this->box->given_Responds('a', '{$GLOBALS[\'foo\']}');
-        $this->box->given_Responds('b', 'comes $c');
-        $this->box->given_Responds('c', 'c');
+        $this->box->givenTheBoxContainer_Responding('root', '$a $b');
+        $this->box->givenTheBoxContainer_Responding('a', '{$GLOBALS[\'foo\']}');
+        $this->box->givenTheBoxContainer_Responding('b', 'comes $c');
+        $this->box->givenTheBoxContainer_Responding('c', 'c');
         $this->box->given_HasTheSideEffect('c', '$GLOBALS["foo"] = "first";');
 
         $this->box->given_Contains('root', 'a');
@@ -113,8 +113,8 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testListAsPrimaryTarget() {
-        $this->box->given_Responds('o', '$inner');
-        $this->box->given_Responds('item', '$name');
+        $this->box->givenTheBoxContainer_Responding('o', '$inner');
+        $this->box->givenTheBoxContainer_Responding('item', '$name');
 
         $this->box->given_ContainsACollection('o', 'inner');
         $this->box->given_HasIn_A_With('o', 'inner', 'item', array('name' => 'One'));
@@ -128,22 +128,40 @@ class UnwrapRequestsTest extends Specification {
     }
 
     function testRedirects() {
-        $this->box->given_Responds('o', '$a -> $b');
-        $this->box->given_Responds('a', '$foo');
-        $this->box->given_Responds('b', 'B');
-        $this->box->given_HasTheSideEffect('b', 'return \watoki\curir\responder\Redirecter::fromString("../c");');
-        $this->box->given_Responds('c', 'C');
-        $this->box->given_HasTheSideEffect('c', 'return \watoki\curir\responder\Redirecter::fromString("../a?foo=baz");');
+        $this->box->givenTheBoxContainer('o');
+        $this->box->givenTheBoxContainer('a');
 
         $this->box->given_Contains('o', 'a');
-        $this->box->given_Contains('o', 'b');
 
-        $this->box->givenAPathFrom_To('o', 'c');
+        $this->box->given_HasTheSideEffect('a', 'return \watoki\curir\responder\Redirecter::fromString("../b?foo=baz");');
 
         $this->box->givenTheRequestArgument_Is('_a/foo', 'bar');
 
         $this->box->whenIGetTheResponseFrom('o');
-        $this->box->thenTheResponseShouldBe('bar -> baz');
+        $this->box->thenTheResponseShouldBeARedirectionTo('?_a[!]=b&_a[foo]=baz&_=a');
+    }
+
+    function testRedirectsWithState() {
+        $this->box->givenTheBoxContainer('o');
+        $this->box->givenTheBoxContainer('a');
+        $this->box->givenTheBoxContainer('b');
+        $this->box->givenTheBoxContainer('c');
+        $this->box->givenTheBoxContainer('d');
+
+        $this->box->given_Contains('o', 'a');
+        $this->box->given_Contains('o', 'b');
+        $this->box->given_Contains('b', 'c');
+
+        $this->box->given_HasTheSideEffect('a', 'return \watoki\curir\responder\Redirecter::fromString("../b?foo=baz");');
+
+        $this->box->givenTheRequestArgument_Is('foo', 'O');
+        $this->box->givenTheRequestArgument_Is('_a/foo', 'A');
+        $this->box->givenTheRequestArgument_Is('_a/me', 'you');
+        $this->box->givenTheRequestArgument_Is('_b/foo', 'B');
+        $this->box->givenTheRequestArgument_Is('_b/_c/foo', 'C');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBeARedirectionTo('?_a[!]=b&_a[foo]=baz&_=a&foo=O&_b[foo]=B&_b[_c][foo]=C');
     }
 
 }

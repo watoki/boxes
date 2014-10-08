@@ -26,7 +26,11 @@ class BoxFixture extends Fixture {
         $this->request = new WebRequest(Url::fromString(''), new Path(), 'get');
     }
 
-    public function given_Responds($boxName, $boxResponse) {
+    public function givenTheBoxContainer($boxName) {
+        $this->givenTheBoxContainer_Responding($boxName, '');
+    }
+
+    public function givenTheBoxContainer_Responding($boxName, $boxResponse) {
         $this->boxes[$boxName] = new TestBox(new Factory(), $boxResponse);
     }
 
@@ -83,6 +87,11 @@ class BoxFixture extends Fixture {
 
     public function thenTheResponseShouldBe($body) {
         $this->spec->assertEquals(trim($body), trim($this->response->getBody()));
+    }
+
+    public function thenTheResponseShouldBeARedirectionTo($url) {
+        $this->spec->assertArrayHasKey(WebResponse::HEADER_LOCATION, $this->response->getHeaders());
+        $this->spec->assertEquals($url, $this->response->getHeaders()->get(WebResponse::HEADER_LOCATION));
     }
 
 } 

@@ -3,6 +3,7 @@ namespace watoki\boxes;
 
 use watoki\collections\Set;
 use watoki\curir\delivery\WebRequest;
+use watoki\curir\protocol\Url;
 use watoki\deli\Router;
 use watoki\dom\Element;
 use watoki\dom\Parser;
@@ -43,24 +44,37 @@ class BoxCollection implements Dispatching {
 
     public function dispatch(WrappedRequest $request, Router $router) {
         if ($request->getArguments()->has(Box::$PRIMARY_TARGET_KEY)) {
-            $primary = $request->getArguments()->get(Box::$PRIMARY_TARGET_KEY);
-            uksort($this->children, function ($a, $b) use ($primary) {
-                $return = $a == $primary ? -1 : ($b == $primary ? 1 : 0);
-                return $return;
-            });
+            $this->putPrimaryChildFirst($request);
         }
 
+        $this->dispatchToChildren($request, $router);
+
+        ksort($this->model);
+        return $request;
+    }
+
+    private function putPrimaryChildFirst(WrappedRequest $request) {
+        $primary = $request->getArguments()->get(Box::$PRIMARY_TARGET_KEY);
+        uksort($this->children, function ($a, $b) use ($primary) {
+            $return = $a == $primary ? -1 : ($b == $primary ? 1 : 0);
+            return $return;
+        });
+    }
+
+    private function dispatchToChildren(WrappedRequest $request, Router $router) {
         foreach ($this->children as $name => $child) {
             $next = $this->unwrap($request, $name);
 
-            $dispatched = $child->dispatch($next, $router);
+            try {
+                $dispatched = $child->dispatch($next, $router);
+            } catch (WrappedRedirection $r) {
+                $target = $r->getTarget();
+                throw new WrappedRedirection($this->wrapTarget($target, $name, $next, $request));
+            }
             $model = $child->getModel();
 
             $this->model[$name] = $this->wrapModel($model, $name, $dispatched, $request);
         }
-
-        ksort($this->model);
-        return $request;
     }
 
     private function unwrap(WrappedRequest $request, $name) {
@@ -126,5 +140,19 @@ class BoxCollection implements Dispatching {
             }
         }
         return false;
+    }
+
+    private function wrapTarget($target, $name, $next, WrappedRequest $request) {
+        $model = '<a href="' . $target . '"/>';
+        $wrapped = $this->wrap($name, $model, $next, $request);
+        $wrappedTarget = Url::fromString(substr($wrapped, 9, -3));
+
+        foreach ($request->getArguments() as $key => $value) {
+            if ($key != Wrapper::$PREFIX . $name) {
+                $wrappedTarget->getParameters()->set($key, $value);
+            }
+        }
+
+        return $wrappedTarget->toString();
     }
 }

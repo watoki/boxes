@@ -4,6 +4,8 @@ namespace watoki\boxes;
 use watoki\collections\Map;
 use watoki\curir\Container;
 use watoki\curir\delivery\WebRequest;
+use watoki\curir\protocol\Url;
+use watoki\curir\responder\Redirecter;
 use watoki\curir\Responder;
 use watoki\deli\Path;
 use watoki\factory\Factory;
@@ -65,7 +67,12 @@ abstract class BoxContainer extends Container {
             $request = WrappedRequest::fromRequest($request);
             $state = $request->getArguments();
         }
-        $this->boxes->dispatch($request, $this->router, $state);
+        try {
+            $this->boxes->dispatch($request, $this->router, $state);
+        } catch (WrappedRedirection $r) {
+            $request->getArguments()->set('target', $r->getTarget());
+            $request->setMethod('redirect');
+        }
 
         return parent::before($request);
     }
@@ -75,6 +82,10 @@ abstract class BoxContainer extends Container {
 
         $response->setBody($this->boxes->wrapContainer($response->getBody(), $request));
         return $response;
+    }
+
+    public function doRedirect($target) {
+        return new Redirecter(Url::fromString($target));
     }
 
 }
