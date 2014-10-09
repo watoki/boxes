@@ -90,8 +90,12 @@ class BoxFixture extends Fixture {
     }
 
     public function thenTheResponseShouldBeARedirectionTo($url) {
-        $this->spec->assertArrayHasKey(WebResponse::HEADER_LOCATION, $this->response->getHeaders());
+        $this->spec->assertArrayHasKey(WebResponse::HEADER_LOCATION, $this->response->getHeaders()->toArray());
         $this->spec->assertEquals($url, $this->response->getHeaders()->get(WebResponse::HEADER_LOCATION));
+    }
+
+    public function givenTheContextIs($string) {
+        $this->request->setContext(Url::fromString($string));
     }
 
 } 

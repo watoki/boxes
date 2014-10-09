@@ -133,12 +133,13 @@ class UnwrapRequestsTest extends Specification {
 
         $this->box->given_Contains('o', 'a');
 
-        $this->box->given_HasTheSideEffect('a', 'return \watoki\curir\responder\Redirecter::fromString("../b?foo=baz");');
+        $this->box->given_HasTheSideEffect('a', 'return \watoki\curir\responder\Redirecter::fromString("/some/where/b?foo=baz");');
 
+        $this->box->givenTheContextIs("/some/where");
         $this->box->givenTheRequestArgument_Is('_a/foo', 'bar');
 
         $this->box->whenIGetTheResponseFrom('o');
-        $this->box->thenTheResponseShouldBeARedirectionTo('?_a[!]=b&_a[foo]=baz&_=a');
+        $this->box->thenTheResponseShouldBeARedirectionTo('/some/where?_a[!]=b&_a[foo]=baz&_=a');
     }
 
     function testRedirectsWithState() {

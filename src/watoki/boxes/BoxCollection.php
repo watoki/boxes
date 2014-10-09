@@ -143,6 +143,13 @@ class BoxCollection implements Dispatching {
     }
 
     private function wrapTarget($target, $name, $next, WrappedRequest $request) {
+        $targetUrl = Url::fromString($target);
+
+        if ($targetUrl->isAbsolute()) {
+            $context = $request->getContext()->toString();
+            $target = substr($target, strlen($context) + 1);
+        }
+
         $model = '<a href="' . $target . '"/>';
         $wrapped = $this->wrap($name, $model, $next, $request);
         $wrappedTarget = Url::fromString(substr($wrapped, 9, -3));

@@ -4,7 +4,6 @@ namespace watoki\boxes;
 use watoki\collections\Map;
 use watoki\curir\Container;
 use watoki\curir\delivery\WebRequest;
-use watoki\curir\protocol\Url;
 use watoki\curir\responder\Redirecter;
 use watoki\curir\Responder;
 use watoki\deli\Path;
@@ -85,7 +84,7 @@ abstract class BoxContainer extends Container {
     }
 
     public function doRedirect($target) {
-        return new Redirecter(Url::fromString($target));
+        return Redirecter::fromString($target);
     }
 
 }
