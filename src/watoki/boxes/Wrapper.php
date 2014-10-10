@@ -26,7 +26,7 @@ class Wrapper {
     );
 
     /** @var string */
-    private $name;
+    protected $name;
 
     /** @var \watoki\deli\Path */
     private $path;
@@ -182,15 +182,7 @@ class Wrapper {
 
         foreach ($this->state as $name => $state) {
             if ($name !== self::$PREFIX . $box) {
-                if (!$params->has(Box::$TARGET_KEY)) {
-                    $wrapped->getParameters()->set($name, $state);
-                }
-            } else {
-                foreach ($state as $iName => $iState) {
-                    if ($this->isKeepWorthyState($params, $iName)) {
-                        $params->set($iName, $iState);
-                    }
-                }
+                $wrapped->getParameters()->set($name, $state);
             }
         }
         $wrapped->getParameters()->set(self::$PREFIX . $box, $params);
@@ -214,15 +206,4 @@ class Wrapper {
         $element->setAttribute($attributeName, $url->toString());
     }
 
-    protected function isKeepWorthyState(Map $params, $iName) {
-        return !$params->has(Box::$TARGET_KEY)
-        && $iName != Box::$PRIMARY_TARGET_KEY
-        && substr($iName, 0, strlen(self::$PREFIX)) == self::$PREFIX
-        && (!$params->has(Box::$PRIMARY_TARGET_KEY)
-                || self::$PREFIX . $params->get(Box::$PRIMARY_TARGET_KEY) != $iName);
-    }
-
-    protected function isGet(Map $params) {
-        return !$params->has(WebRequest::$METHOD_KEY) || $params->get(WebRequest::$METHOD_KEY) == WebRequest::METHOD_GET;
-    }
 }

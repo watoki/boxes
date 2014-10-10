@@ -44,7 +44,7 @@ class RedirectsTest extends Specification {
         $this->box->givenTheRequestArgument_Is('_b/_c/foo', 'C');
 
         $this->box->whenIGetTheResponseFrom('o');
-        $this->box->thenTheResponseShouldBeARedirectionTo('?_a[!]=b&_a[foo]=baz&_=a&foo=O&_b[foo]=B&_b[_c][foo]=C');
+        $this->box->thenTheResponseShouldBeARedirectionTo('?foo=O&_b[foo]=B&_b[_c][foo]=C&_a[!]=b&_a[foo]=baz&_=a');
     }
 
     function testEmptyPath() {

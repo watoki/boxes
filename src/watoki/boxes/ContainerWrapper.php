@@ -22,14 +22,14 @@ class ContainerWrapper extends Wrapper {
 
     protected function wrapUrl(Element $element, $target) {
         $target = Url::fromString($target);
-        $params = $target->getParameters();
-
-        foreach ($this->state as $name => $state) {
-            if ($this->isKeepWorthyState($params, $name)) {
-                $params->set($name, $state);
-            }
-        }
-
+//        $params = $target->getParameters();
+//
+//        foreach ($this->state as $name => $state) {
+//            if ($this->isKeepWorthyState($params, $name)) {
+//                $params->set($name, $state);
+//            }
+//        }
+//
         return $target;
     }
 

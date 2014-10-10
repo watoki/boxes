@@ -9,7 +9,7 @@ use watoki\scrut\Specification;
  */
 class KeepStateTest extends Specification {
 
-    function testKeepState() {
+    function testKeepAllState() {
         $this->box->givenTheBoxContainer_Responding('a', '<a href="">A</a> $b $c');
         $this->box->givenTheBoxContainer_Responding('b', '<a href="">B</a> $f');
         $this->box->givenTheBoxContainer_Responding('c', '<a href="">C</a> $d $e');
@@ -32,12 +32,29 @@ class KeepStateTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('a');
         $this->box->thenTheResponseShouldBe(
-                '<a href="?_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E">A</a> ' .
-                '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_b[_f][foo]=F&_=b">B</a> ' .
+                '<a href="">A</a> ' .
+                '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_=b">B</a> ' .
                 '<a href="?foo=A&_c[foo]=C&_c[_d][foo]=D&_c[_e][foo]=E&_b[foo]=B&_b[_]=f&_=b">F</a> ' .
-                '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[_d][foo]=D&_c[_e][foo]=E&_=c">C</a> ' .
+                '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_=c">C</a> ' .
                 '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_e][foo]=E&_c[_]=d&_=c">D</a> ' .
                 '<a href="?foo=A&_b[foo]=B&_b[_f][foo]=F&_c[foo]=C&_c[_d][foo]=D&_c[_]=e&_=c">E</a>');
+    }
+
+    function testKeepStateOfSiblings() {
+        $this->box->givenTheBoxContainer_Responding('a', '<a href="">A</a> $b $c');
+        $this->box->givenTheBoxContainer_Responding('b', '<a href="x" target="c">B</a>');
+        $this->box->givenTheBoxContainer_Responding('c', '<a href="">C</a>');
+
+        $this->box->given_Contains('a', 'b');
+        $this->box->given_Contains('a', 'c');
+
+        $this->box->givenTheRequestArgument_Is('_d/foo', 'D');
+
+        $this->box->whenIGetTheResponseFrom('a');
+        $this->box->thenTheResponseShouldBe(
+                '<a href="">A</a> ' .
+                '<a href="?_d[foo]=D&_c[!]=x&_=c">B</a> ' .
+                '<a href="?_d[foo]=D&_=c">C</a>');
     }
 
     function testDoNotKeepPrimaryTargetInState() {
@@ -54,6 +71,7 @@ class KeepStateTest extends Specification {
         $this->box->thenTheResponseShouldBe('<a href="?_=a">A</a> <a href="?_a[_]=b&_=a">B</a>');
     }
 
+    /** I don't think this scenario is still required */
     function testDoNotKeepStateIfTargetChanges() {
         $this->box->givenTheBoxContainer_Responding('o', '$a');
         $this->box->givenTheBoxContainer_Responding('a', '<a href="y" target="a">A</a> $b');
@@ -65,7 +83,7 @@ class KeepStateTest extends Specification {
         $this->box->givenTheRequestArgument_Is('_a/_b/foo', 'B');
 
         $this->box->whenIGetTheResponseFrom('o');
-        $this->box->thenTheResponseShouldBe('<a href="?_a[!]=y&_a[_b][foo]=B&_=a">A</a> <a href="?_a[_]=b&_=a">B</a>');
+        $this->box->thenTheResponseShouldBe('<a href="?_a[!]=y&_=a">A</a> <a href="?_a[_]=b&_=a">B</a>');
     }
 
     function testDoNotKeepChildStateIfTargetChanges() {
