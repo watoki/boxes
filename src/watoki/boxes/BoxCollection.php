@@ -36,12 +36,6 @@ class BoxCollection implements Dispatching {
         return $this->model;
     }
 
-    public function wrapContainer($body, WebRequest $request) {
-        $wrapper = new ContainerWrapper($request->getArguments());
-        $body = $wrapper->wrap($body);
-        return $this->mergeHeaders($body);
-    }
-
     public function dispatch(WebRequest $request, Router $router) {
         if ($request->getArguments()->has(Box::$PRIMARY_TARGET_KEY)) {
             $this->putPrimaryChildFirst($request);
