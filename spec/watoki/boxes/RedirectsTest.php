@@ -58,4 +58,18 @@ class RedirectsTest extends Specification {
         $this->box->whenIGetTheResponseFrom('o');
         $this->box->thenTheResponseShouldBeARedirectionTo('?_a[!]=a&_a[foo]=baz&_=a');
     }
+
+    function testEdgeCaseChangedContext() {
+        $this->box->givenTheBoxContainer('o');
+        $this->box->givenTheBoxContainer('a');
+
+        $this->box->given_Contains('o', 'a');
+
+        $this->box->given_HasTheSideEffect('a', 'return \watoki\curir\responder\Redirecter::fromString("..?foo=bar");');
+
+        $this->box->givenTheContextIs('http://foo');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBeARedirectionTo('http://foo?_a[!]=a&_a[foo]=bar&_=a');
+    }
 } 

@@ -144,7 +144,7 @@ class BoxCollection implements Dispatching {
 
         if ($targetUrl->isAbsolute()) {
             $context = $request->getContext()->toString();
-            $target = substr($target, strlen($context) + 1);
+            $target = ltrim(substr($target, strlen($context)), '/');
         }
 
         $model = '<a href="' . $target . '"/>';
