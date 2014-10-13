@@ -174,6 +174,8 @@ class Wrapper {
         $params = new Map();
         if ($target->getPath()->toString()) {
             $params->set(Box::$TARGET_KEY, $target->getPath()->toString());
+        } else if ($this->path->toString()) {
+            $params->set(Box::$TARGET_KEY, $this->path->toString());
         }
         $params->merge($target->getParameters());
 
@@ -200,7 +202,7 @@ class Wrapper {
             return;
         }
         $path = $url->getPath();
-        $path->insertAll($this->path, 0);
+        $path->insertAll($this->path->slice(0, -1), 0);
 
         $url->setPath($path);
         $element->setAttribute($attributeName, $url->toString());
