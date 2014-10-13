@@ -42,7 +42,7 @@ class BoxCollection implements Dispatching {
         return $this->mergeHeaders($body);
     }
 
-    public function dispatch(WrappedRequest $request, Router $router) {
+    public function dispatch(WebRequest $request, Router $router) {
         if ($request->getArguments()->has(Box::$PRIMARY_TARGET_KEY)) {
             $this->putPrimaryChildFirst($request);
         }
@@ -53,7 +53,7 @@ class BoxCollection implements Dispatching {
         return $request;
     }
 
-    private function putPrimaryChildFirst(WrappedRequest $request) {
+    private function putPrimaryChildFirst(WebRequest $request) {
         $primary = $request->getArguments()->get(Box::$PRIMARY_TARGET_KEY);
         uksort($this->children, function ($a, $b) use ($primary) {
             $return = $a == $primary ? -1 : ($b == $primary ? 1 : 0);
@@ -61,7 +61,7 @@ class BoxCollection implements Dispatching {
         });
     }
 
-    private function dispatchToChildren(WrappedRequest $request, Router $router) {
+    private function dispatchToChildren(WebRequest $request, Router $router) {
         foreach ($this->children as $name => $child) {
             $next = $this->unwrap($request, $name);
 
@@ -77,7 +77,7 @@ class BoxCollection implements Dispatching {
         }
     }
 
-    private function unwrap(WrappedRequest $request, $name) {
+    private function unwrap(WebRequest $request, $name) {
         $next = $request->copy();
         $next->getArguments()->clear();
 
@@ -87,7 +87,7 @@ class BoxCollection implements Dispatching {
         return $next;
     }
 
-    private function wrapModel($model, $name, WrappedRequest $dispatched, WrappedRequest $wrapped) {
+    private function wrapModel($model, $name, WebRequest $dispatched, WebRequest $wrapped) {
         if (is_string($model)) {
             return $this->wrap($name, $model, $dispatched, $wrapped);
         } else {
@@ -98,7 +98,7 @@ class BoxCollection implements Dispatching {
         }
     }
 
-    private function wrap($name, $model, WrappedRequest $dispatched, WrappedRequest $wrapped) {
+    private function wrap($name, $model, WebRequest $dispatched, WebRequest $wrapped) {
         $wrapper = new Wrapper($name, $dispatched->getTarget(), $wrapped->getArguments());
         $model = $wrapper->wrap($model);
         $this->heads->putAll($wrapper->getHeadElements());
@@ -139,7 +139,7 @@ class BoxCollection implements Dispatching {
         return false;
     }
 
-    private function wrapTarget($target, $name, $next, WrappedRequest $request) {
+    private function wrapTarget($target, $name, $next, WebRequest $request) {
         $targetUrl = Url::fromString($target);
 
         if ($targetUrl->isAbsolute()) {

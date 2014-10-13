@@ -7,7 +7,7 @@ use watoki\scrut\Specification;
 /**
  * @property BoxFixture box <-
  */
-class RedirectsTest extends Specification {
+class WrapRedirectsTest extends Specification {
 
     function testAbsolutePath() {
         $this->box->givenTheBoxContainer('o');

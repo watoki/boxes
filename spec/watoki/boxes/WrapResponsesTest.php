@@ -46,6 +46,30 @@ class WrapResponsesTest extends Specification {
         $this->box->thenTheResponseShouldBe('Go <a href="?_other[!]=there&_=other">Two</a>');
     }
 
+    function testLinkTargetsParentBox() {
+        $this->box->givenTheBoxContainer_Responding('outer', 'Go $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', 'Even $further');
+        $this->box->givenTheBoxContainer_Responding('further', '<a href="there?foo=bar" target="_parent">Further</a>');
+
+        $this->box->given_Contains('outer', 'inner');
+        $this->box->given_Contains('inner', 'further');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('Go Even <a href="?_inner[!]=there&_inner[foo]=bar&_=inner">Further</a>');
+    }
+
+    function testLinkTargetsParentsParentBox() {
+        $this->box->givenTheBoxContainer_Responding('outer', 'Go $inner');
+        $this->box->givenTheBoxContainer_Responding('inner', 'Even $further');
+        $this->box->givenTheBoxContainer_Responding('further', '<a href="there?foo=bar" target="_parent_parent">Further</a>');
+
+        $this->box->given_Contains('outer', 'inner');
+        $this->box->given_Contains('inner', 'further');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->box->thenTheResponseShouldBe('Go Even <a href="there?foo=bar">Further</a>');
+    }
+
     function testDoNotWrapLinksWithOtherTargets() {
         $this->box->givenTheBoxContainer_Responding('inner', '<a href="there" target="_other">Two</a>');
         $this->box->givenTheBoxContainer_Responding('outer', 'Go $inner');

@@ -94,6 +94,21 @@ class UnwrapRequestsTest extends Specification {
         $this->box->thenTheResponseShouldBe('Hello my dear foo!');
     }
 
+    function testMethodFindsOnlyTarget() {
+        $this->box->givenTheBoxContainer_Responding('o', '$outer');
+        $this->box->givenTheBoxContainer_Responding('outer', '$list');
+        $this->box->givenTheBoxContainer_Responding('inner', '$foo');
+
+        $this->box->given_Contains('o', 'outer');
+        $this->box->given_ContainsACollection('outer', 'list');
+        $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'bar'));
+
+        $this->box->givenTheRequestArgument_Is('_outer/do', 'notGet');
+
+        $this->box->whenIGetTheResponseFrom('o');
+        $this->box->thenTheResponseShouldBe('not bar');
+    }
+
     function testPrimaryTargetIsDispatchedFirst() {
         $this->box->givenTheBoxContainer_Responding('root', '$a $b');
         $this->box->givenTheBoxContainer_Responding('a', '{$GLOBALS[\'foo\']}');

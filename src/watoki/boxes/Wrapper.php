@@ -165,7 +165,14 @@ class Wrapper {
 
         if ($element->getAttribute('target')) {
             $box = $element->getAttribute('target')->getValue();
-            if (substr($box, 0, 1) == '_') {
+            if (substr($box, 0, 7) == '_parent') {
+                $remaining = substr($element->getAttribute('target')->getValue(), strlen('_parent'));
+                $element->setAttribute('target', $remaining);
+                if (!$remaining) {
+                    $element->getAttributes()->removeElement($element->getAttribute('target'));
+                }
+                return $target;
+            } else if (substr($box, 0, 1) == '_') {
                 return $target;
             }
             $element->getAttributes()->removeElement($element->getAttribute('target'));

@@ -1,16 +1,17 @@
 <?php
 namespace watoki\boxes;
 
+use watoki\curir\delivery\WebRequest;
 use watoki\deli\Router;
 
 interface Dispatching {
 
     /**
-     * @param WrappedRequest $request
+     * @param WebRequest $request
      * @param Router $router
-     * @return WrappedRequest
+     * @return WebRequest
      */
-    public function dispatch(WrappedRequest $request, Router $router);
+    public function dispatch(WebRequest $request, Router $router);
 
     /**
      * @return string|array

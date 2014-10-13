@@ -61,13 +61,12 @@ abstract class BoxContainer extends Container {
     }
 
     public function before(WebRequest $request) {
-        $state = null;
-        if (!($request instanceof WrappedRequest)) {
-            $request = WrappedRequest::fromRequest($request);
-            $state = $request->getArguments();
+        if (!$request->getArguments()->has(WebRequest::$METHOD_KEY)) {
+            $request->setMethod(WebRequest::METHOD_GET);
         }
+
         try {
-            $this->boxes->dispatch($request, $this->router, $state);
+            $this->boxes->dispatch($request, $this->router, $request->getArguments());
         } catch (WrappedRedirection $r) {
             $request->getArguments()->set('target', $r->getTarget());
             $request->setMethod('redirect');

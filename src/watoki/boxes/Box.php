@@ -27,19 +27,22 @@ class Box implements Dispatching {
         $this->arguments = $defaultArguments ? : new Map();
     }
 
-    public function dispatch(WrappedRequest $request, Router $router) {
+    public function dispatch(WebRequest $request, Router $router) {
         $arguments = $request->getArguments();
 
         $request->setTarget($this->target);
 
         if ($arguments->isEmpty()) {
             $arguments->merge($this->arguments);
+            $request->setMethod(WebRequest::METHOD_GET);
         } else {
             if ($arguments->has(self::$TARGET_KEY)) {
                 $request->setTarget(Path::fromString($arguments->get(self::$TARGET_KEY)));
             }
             if ($arguments->has(WebRequest::$METHOD_KEY)) {
                 $request->setMethod($arguments->get(WebRequest::$METHOD_KEY));
+            } else {
+                $request->setMethod(WebRequest::METHOD_GET);
             }
         }
 

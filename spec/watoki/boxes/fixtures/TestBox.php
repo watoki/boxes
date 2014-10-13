@@ -69,7 +69,7 @@ class TestBox extends BoxContainer {
      * @return string
      */
     public function doNotGet(WebRequest $request) {
-        return $this->doGet($request);
+        return 'not ' . $this->doGet($request);
     }
 
     public function doFoo() {
