@@ -31,7 +31,7 @@ abstract class BoxContainer extends Container {
      * @param array $args
      * @return Box
      */
-    protected function box($path, $args) {
+    protected function box($path, $args = array()) {
         return new Box(Path::fromString($path), new Map($args));
     }
 

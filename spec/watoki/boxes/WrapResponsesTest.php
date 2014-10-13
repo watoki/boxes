@@ -34,7 +34,7 @@ class WrapResponsesTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('Go <a href="?_inner[!]=inner&_inner[foo]=bar&_=inner">Here</a>');
+        $this->box->thenTheResponseShouldBe('Go <a href="?_inner[foo]=bar&_=inner">Here</a>');
     }
 
     function testLinkTargetsOtherBox() {
@@ -90,7 +90,7 @@ class WrapResponsesTest extends Specification {
         $this->box->whenIGetTheResponseFrom('one');
         $this->box->thenTheResponseShouldBe(
                 'One <a href="?_two[!]=here&_two[foo]=bar&_=two">Two</a> ' .
-                '<a href="?_two[!]=two&_two[_three][!]=there&_two[_three][me]=you&_two[_]=three&_=two">Three</a>');
+                '<a href="?_two[_three][!]=there&_two[_three][me]=you&_two[_]=three&_=two">Three</a>');
     }
 
     function testFormWithoutActionAndMethod() {
@@ -101,7 +101,7 @@ class WrapResponsesTest extends Specification {
         $this->box->givenTheRequestArgument_Is('_some/key', 'foo');
 
         $this->box->whenIGetTheResponseFrom('outer');
-        $this->box->thenTheResponseShouldBe('<form action="?_some[key]=foo&_inner[!]=inner&_inner[do]=post&_=inner"></form>');
+        $this->box->thenTheResponseShouldBe('<form action="?_some[key]=foo&_inner[do]=post&_=inner"></form>');
     }
 
     function testFormWithAction() {
@@ -250,9 +250,9 @@ class WrapResponsesTest extends Specification {
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe(
-                '<a href="?_inner[!]=inner&_inner[_list][_0][!]=item&_inner[_list][_0][foo]=bar&_inner[_list][_]=0&_inner[_]=list&_=inner">One</a> ' .
-                '<a href="?_inner[!]=inner&_inner[_list][_1][!]=item&_inner[_list][_1][foo]=bar&_inner[_list][_]=1&_inner[_]=list&_=inner">Two</a> ' .
-                '<a href="?_inner[!]=inner&_inner[_list][_2][!]=item&_inner[_list][_2][foo]=bar&_inner[_list][_]=2&_inner[_]=list&_=inner">Three</a>');
+                '<a href="?_inner[_list][_0][foo]=bar&_inner[_list][_]=0&_inner[_]=list&_=inner">One</a> ' .
+                '<a href="?_inner[_list][_1][foo]=bar&_inner[_list][_]=1&_inner[_]=list&_=inner">Two</a> ' .
+                '<a href="?_inner[_list][_2][foo]=bar&_inner[_list][_]=2&_inner[_]=list&_=inner">Three</a>');
     }
 
     function testListWithHeaders() {

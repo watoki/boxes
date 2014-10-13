@@ -70,6 +70,6 @@ class WrapRedirectsTest extends Specification {
         $this->box->givenTheContextIs('http://foo');
 
         $this->box->whenIGetTheResponseFrom('o');
-        $this->box->thenTheResponseShouldBeARedirectionTo('http://foo?_a[!]=a&_a[foo]=bar&_=a');
+        $this->box->thenTheResponseShouldBeARedirectionTo('http://foo?_a[foo]=bar&_=a');
     }
 } 
