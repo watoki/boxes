@@ -19,6 +19,9 @@ class BoxCollection implements Dispatching {
     /** @var Set|Element[] */
     private $heads;
 
+    /** @var null|string */
+    private $onLoadHandler;
+
     public function __construct($children = array()) {
         $this->children = $children;
         $this->heads = new Set();
@@ -68,6 +71,10 @@ class BoxCollection implements Dispatching {
             $model = $child->getModel();
 
             $this->model[$name] = $this->wrapModel($model, $name, $dispatched, $request);
+            if ($child instanceof BoxCollection) {
+                $this->heads->putAll($child->heads);
+                $this->onLoadHandler .= $child->onLoadHandler;
+            }
         }
     }
 
@@ -95,6 +102,7 @@ class BoxCollection implements Dispatching {
     private function wrap($name, $model, WebRequest $dispatched, WebRequest $wrapped) {
         $wrapper = new Wrapper($name, $dispatched->getTarget(), $wrapped->getArguments());
         $model = $wrapper->wrap($model);
+        $this->onLoadHandler .= $wrapper->getOnLoadHandler();
         $this->heads->putAll($wrapper->getHeadElements());
         return $model;
     }
@@ -103,15 +111,28 @@ class BoxCollection implements Dispatching {
         $parser = new Parser($into);
 
         $html = $parser->findElement('html');
-        if (!($html && $html->findChildElement('head'))) {
+        if (!$html) {
             return $into;
         }
 
         $head = $html->findChildElement('head');
 
-        foreach ($this->heads as $new) {
-            if (!$this->isAlreadyIn($new, $head->getChildElements())) {
-                $head->getChildren()->append($new);
+        if ($head) {
+            foreach ($this->heads as $new) {
+                if (!$this->isAlreadyIn($new, $head->getChildElements())) {
+                    $head->getChildren()->append($new);
+                }
+            }
+        }
+
+        $body = $html->findChildElement('body');
+        if ($body) {
+            $handler = $this->onLoadHandler;
+            if ($body->getAttribute('onload')) {
+                $handler = $body->getAttribute('onload')->getValue() . $handler;
+            }
+            if ($handler) {
+                $body->setAttribute('onload', $handler);
             }
         }
 

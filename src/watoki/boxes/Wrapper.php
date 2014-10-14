@@ -34,6 +34,9 @@ class Wrapper {
     /** @var Set */
     private $headElements;
 
+    /** @var null|string */
+    private $onLoadHandler;
+
     /** @var Map */
     protected $state;
 
@@ -64,8 +67,20 @@ class Wrapper {
             }
         }
 
+        $id = uniqid('box-');
+        $open = '';
+        $close = '';
+        if ($body->getAttribute('onload') && $body->getAttribute('onload')->getValue()) {
+            $handler = $body->getAttribute('onload')->getValue();
+            $handler = rtrim($handler, ';') . ';';
+            $handler = str_replace('top.document.body', 'document.body', $handler);
+            $this->onLoadHandler = str_replace('document.body', "top.document.getElementById('$id')", $handler);
+            $open = '<div id="' . $id . '">';
+            $close = '</div>';
+        }
+
         $printer = new Printer();
-        return $printer->printNodes($body->getChildren());
+        return $open . $printer->printNodes($body->getChildren()) . $close;
     }
 
     /**
@@ -211,6 +226,13 @@ class Wrapper {
 
         $url->setPath($path);
         $element->setAttribute($attributeName, $url->toString());
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getOnLoadHandler() {
+        return $this->onLoadHandler;
     }
 
 }

@@ -203,6 +203,7 @@ class WrapResponsesTest extends Specification {
                     <title>I stay</title>
                     <script src="outer/script.js"/>
                     <script src="duplicate.js"/>
+                    <script>alert("bar");</script>
                 </head>
             </html>
         ');
@@ -212,6 +213,7 @@ class WrapResponsesTest extends Specification {
                     <title>I am ignored</title>
                     <script src="script.js"/>
                     <script src="duplicate.js"/>
+                    <script>alert("foo");</script>
                 </head>
             </html>');
 
@@ -224,7 +226,8 @@ class WrapResponsesTest extends Specification {
                     <title>I stay</title>
                     <script src="outer/script.js"/>
                     <script src="duplicate.js"/>
-                <script src="script.js"/></head>
+                    <script>alert("bar");</script>
+                <script src="script.js"/><script>alert("foo");</script></head>
             </html>');
     }
 
@@ -261,8 +264,9 @@ class WrapResponsesTest extends Specification {
                 <head>
                     <title>Outer</title>
                 </head>
+                <body></body>
             </html>');
-        $this->box->givenTheBoxContainer_Responding('inner', '<html><head><script src="$foo"/></head></html>');
+        $this->box->givenTheBoxContainer_Responding('inner', '<html><head><script src="$foo"/></head><body></body></html>');
 
         $this->box->given_ContainsACollection('outer', 'list');
         $this->box->given_HasIn_A_With('outer', 'list', 'inner', array('foo' => 'one'));
@@ -275,7 +279,46 @@ class WrapResponsesTest extends Specification {
                 <head>
                     <title>Outer</title>
                 <script src="one"/><script src="bar"/></head>
+                <body></body>
             </html>');
+    }
+
+    function testMergeOnLoadHandlers() {
+        $this->box->givenTheBoxContainer_Responding('outer', '<html>
+        <head></head>
+        <body onload="me_using(document.body);">
+            My Body
+            $one
+            $two
+        </body></html>');
+        $this->box->givenTheBoxContainer_Responding('one', '<html><body onload="this_using(document.body);">
+            This Body.
+        </body></html>');
+        $this->box->givenTheBoxContainer_Responding('two', '<html><body onload="that_using(top.document.body);">
+            That Body
+        </body></html>');
+
+        $this->box->given_Contains('outer', 'one');
+        $this->box->given_Contains('outer', 'two');
+
+        $this->box->whenIGetTheResponseFrom('outer');
+        $this->thenTheResponseShouldBeSimilarTo('<html>
+        <head></head>
+        <body onload="me_using(document.body);this_using(top.document.getElementById(\'box-uniqid\'));that_using(top.document.getElementById(\'box-uniqid\'));">
+            My Body
+            <div id="box-uniqid">
+            This Body.
+        </div>
+            <div id="box-uniqid">
+            That Body
+        </div>
+        </body></html>');
+    }
+
+    private function thenTheResponseShouldBeSimilarTo($string) {
+        $expected = str_replace('uniqid', '', $string);
+        $actual = preg_replace('/box-[0-9a-z]+/', 'box-', $this->box->response->getBody());
+        $this->assertEquals($expected, $actual);
     }
 
 }
