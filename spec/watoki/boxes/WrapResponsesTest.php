@@ -175,7 +175,7 @@ class WrapResponsesTest extends Specification {
     function testAssets() {
         $this->box->givenTheBoxContainer_Responding('inner', 'not me');
         $this->box->givenTheBoxContainer_Responding('outer', '$inner');
-        $this->box->givenTheBoxContainer_Responding('other', '
+        $this->box->givenTheBoxContainer_In_Responding('other', 'root/in/here', '
             <link href="some/favico.png" rel="icon" type="image/png"/>
             <link href="../my/styles.css" rel="stylesheet"/>
             <script src="some/script.js"/>
@@ -184,16 +184,15 @@ class WrapResponsesTest extends Specification {
 
         $this->box->given_Contains('outer', 'inner');
 
-        $this->box->givenAPath_From_To('that/path', 'outer', 'other');
-        $this->box->givenTheRequestArgument_Is('_inner/!', 'that/path');
+        $this->box->givenTheRequestArgument_Is('_inner/!', 'in/here/other');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('
-            <link href="that/some/favico.png" rel="icon" type="image/png"/>
-            <link href="my/styles.css" rel="stylesheet"/>
-            <script src="that/some/script.js"/>
+            <link href="in/here/some/favico.png" rel="icon" type="image/png"/>
+            <link href="in/my/styles.css" rel="stylesheet"/>
+            <script src="in/here/some/script.js"/>
             <script src="/absolute/path.js"/>
-            <img src="that/some/pic.jpg"/>');
+            <img src="in/here/some/pic.jpg"/>');
     }
 
     function testMergeHead() {
@@ -240,7 +239,7 @@ class WrapResponsesTest extends Specification {
         $this->box->thenTheResponseShouldBe('Hello World');
     }
 
-    function testBoxList() {
+    function testWrapBoxList() {
         $this->box->givenTheBoxContainer_Responding('outer', '$inner');
         $this->box->givenTheBoxContainer_Responding('inner', '$list');
         $this->box->givenTheBoxContainer_Responding('item', '<a href="?foo=bar">$name</a>');

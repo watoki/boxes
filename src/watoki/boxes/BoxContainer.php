@@ -6,13 +6,18 @@ use watoki\curir\Container;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\responder\Redirecter;
 use watoki\curir\Responder;
+use watoki\curir\delivery\WebRouter;
 use watoki\deli\Path;
+use watoki\deli\Router;
 use watoki\factory\Factory;
 
 abstract class BoxContainer extends Container {
 
     /** @var BoxCollection */
     protected $boxes;
+
+    /** @var \watoki\deli\Router */
+    private $router;
 
     /**
      * @param Factory $factory <-
@@ -21,10 +26,23 @@ abstract class BoxContainer extends Container {
         parent::__construct($factory);
         $this->boxes = new BoxCollection();
 
+        $this->router = $this->createBoxRouter();
+
         $this->registerBoxes();
     }
 
     abstract protected function registerBoxes();
+
+    /**
+     * @return Router
+     */
+    protected function createBoxRouter() {
+        $class = new \ReflectionClass($this);
+        $namespace = $class->getNamespaceName();
+        $directory = $this->getDirectory();
+
+        return new WebRouter($this->factory, $directory, $namespace);
+    }
 
     /**
      * @param string $path
@@ -33,27 +51,6 @@ abstract class BoxContainer extends Container {
      */
     protected function box($path, $args = array()) {
         return new Box(Path::fromString($path), new Map($args));
-    }
-
-    /**
-     * @param string $name
-     * @param array $args
-     * @param null|string $pathString
-     */
-    protected function addBox($name, $args = array(), $pathString = null) {
-        $pathString = $pathString ? : $name;
-        $this->boxes->set($name, $this->box($pathString, $args));
-    }
-
-    /**
-     * @param string $name
-     * @param array $boxes
-     * @return BoxCollection
-     */
-    protected function addCollection($name, array $boxes) {
-        $collection = new BoxCollection($boxes);
-        $this->boxes->set($name, $collection);
-        return $collection;
     }
 
     protected function getBoxes() {

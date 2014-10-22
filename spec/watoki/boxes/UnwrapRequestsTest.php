@@ -27,7 +27,6 @@ class UnwrapRequestsTest extends Specification {
         $this->box->given_Contains('outer', 'inner');
 
         $this->box->givenTheRequestArgument_Is('_inner/!', 'other');
-        $this->box->givenAPathFrom_To('outer', 'other');
 
         $this->box->whenIGetTheResponseFrom('outer');
         $this->box->thenTheResponseShouldBe('Hello Other');
@@ -81,7 +80,10 @@ class UnwrapRequestsTest extends Specification {
         $this->box->givenTheBoxContainer_Responding('root', 'Hello $foo $bar');
         $this->box->givenTheBoxContainer_Responding('foo', 'my');
         $this->box->givenTheBoxContainer_Responding('bar', 'dear $baz');
-        $this->box->givenTheBoxContainer_Responding('baz', 'World');
+        $this->box->givenTheBoxContainer_WithBody('baz', '
+            public function doFoo() {
+                return "foo!";
+            }');
 
         $this->box->given_Contains('root', 'foo');
         $this->box->given_Contains('root', 'bar');
@@ -96,7 +98,10 @@ class UnwrapRequestsTest extends Specification {
 
     function testMethodFindsOnlyTarget() {
         $this->box->givenTheBoxContainer_Responding('o', '$outer');
-        $this->box->givenTheBoxContainer_Responding('outer', '$list');
+        $this->box->givenTheBoxContainer_WithBody('outer', '
+            public function doNotGet() {
+                return "not \$list";
+            }');
         $this->box->givenTheBoxContainer_Responding('inner', '$foo');
 
         $this->box->given_Contains('o', 'outer');
@@ -111,10 +116,16 @@ class UnwrapRequestsTest extends Specification {
 
     function testPrimaryTargetIsDispatchedFirst() {
         $this->box->givenTheBoxContainer_Responding('root', '$a $b');
-        $this->box->givenTheBoxContainer_Responding('a', '{$GLOBALS[\'foo\']}');
+        $this->box->givenTheBoxContainer_WithBody('a', '
+            public function doGet() {
+                return $GLOBALS["foo"];
+            }');
         $this->box->givenTheBoxContainer_Responding('b', 'comes $c');
-        $this->box->givenTheBoxContainer_Responding('c', 'c');
-        $this->box->given_HasTheSideEffect('c', '$GLOBALS["foo"] = "first";');
+        $this->box->givenTheBoxContainer_WithBody('c', '
+            public function doGet() {
+                $GLOBALS["foo"] = "first";
+                return "c";
+            }');
 
         $this->box->given_Contains('root', 'a');
         $this->box->given_Contains('root', 'b');
