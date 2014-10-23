@@ -40,11 +40,18 @@ class Wrapper {
     /** @var Map */
     protected $state;
 
+    /** @var null|string */
+    private $exception;
+
     function __construct($name, Path $path, Map $state) {
         $this->name = $name;
         $this->path = $path;
         $this->state = $state;
         $this->headElements = new Set();
+    }
+
+    public function except($name) {
+        $this->exception = $name;
     }
 
     /**
@@ -193,22 +200,53 @@ class Wrapper {
             $element->getAttributes()->removeElement($element->getAttribute('target'));
         }
 
-        $params = new Map();
-        if ($target->getPath()->toString()) {
-            $params->set(Box::$TARGET_KEY, $target->getPath()->toString());
-        }
-        $params->merge($target->getParameters());
 
         $wrapped = Url::fromString('');
         $wrapped->setFragment($target->getFragment());
+
+        $params = new Map();
+
+        if ($box === $this->exception) {
+            $wrapped->setPath($target->getPath());
+            if ($wrapped->getPath()->isEmpty()) {
+                $wrapped->setPath($this->path);
+            }
+            foreach ($target->getParameters() as $key => $value) {
+                if (substr($key, 0, strlen(self::$PREFIX)) == self::$PREFIX) {
+                    $params->set($key, $value);
+                } else {
+                    $wrapped->getParameters()->set($key, $value);
+                }
+            }
+        } else {
+            if ($target->getPath()->toString()) {
+                $params->set(Box::$TARGET_KEY, $target->getPath()->toString());
+            }
+            $params->merge($target->getParameters());
+        }
 
         foreach ($this->state as $name => $state) {
             if ($name !== self::$PREFIX . $box) {
                 $wrapped->getParameters()->set($name, $state);
             }
         }
-        $wrapped->getParameters()->set(self::$PREFIX . $box, $params);
-        $wrapped->getParameters()->set(Box::$PRIMARY_TARGET_KEY, $box);
+
+        if ($box !== $this->exception) {
+            $wrapped->getParameters()->set(self::$PREFIX . $box, $params);
+            $wrapped->getParameters()->set(Box::$PRIMARY_TARGET_KEY, $box);
+        } else if ($wrapped->getParameters()->has(Box::$PRIMARY_TARGET_KEY)) {
+            if (!$params->isEmpty()) {
+                $wrapped->getParameters()->set(self::$PREFIX . $box, $params);
+            }
+            if ($wrapped->getParameters()->has(Box::$PRIMARY_TARGET_KEY)) {
+                $wrapped->getParameters()->remove(Box::$PRIMARY_TARGET_KEY);
+            }
+
+            if ($wrapped->getParameters()->has(Box::$TARGET_KEY)) {
+                $wrapped->getParameters()->remove(Box::$TARGET_KEY);
+            }
+        }
+
         return $wrapped;
     }
 

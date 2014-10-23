@@ -1,10 +1,14 @@
 <?php
 namespace watoki\boxes;
 
+use watoki\collections\Liste;
+use watoki\collections\Map;
 use watoki\collections\Set;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\protocol\Url;
+use watoki\deli\Path;
 use watoki\deli\Router;
+use watoki\dom\Attribute;
 use watoki\dom\Element;
 use watoki\dom\Parser;
 use watoki\dom\Printer;
@@ -21,6 +25,9 @@ class BoxCollection implements Dispatching {
 
     /** @var null|string */
     private $onLoadHandler;
+
+    /** @var string|null */
+    private $mappedBox;
 
     public function __construct($children = array()) {
         $this->children = $children;
@@ -39,7 +46,19 @@ class BoxCollection implements Dispatching {
         return $this->model;
     }
 
+    public function mapTargetsTo($name) {
+        $this->mappedBox = $name;
+    }
+
+    public function isMapping() {
+        return $this->mappedBox !== null;
+    }
+
     public function dispatch(WebRequest $request, Router $router) {
+        if ($this->isMapping()) {
+            $this->wrapMappedTarget($request);
+        }
+
         if ($request->getArguments()->has(Box::$PRIMARY_TARGET_KEY)) {
             $this->putPrimaryChildFirst($request);
         }
@@ -71,6 +90,7 @@ class BoxCollection implements Dispatching {
             $model = $child->getModel();
 
             $this->model[$name] = $this->wrapModel($model, $name, $dispatched, $request);
+
             if ($child instanceof BoxCollection) {
                 $this->heads->putAll($child->heads);
                 $this->onLoadHandler .= $child->onLoadHandler;
@@ -101,13 +121,16 @@ class BoxCollection implements Dispatching {
 
     private function wrap($name, $model, WebRequest $dispatched, WebRequest $wrapped) {
         $wrapper = new Wrapper($name, $dispatched->getTarget(), $wrapped->getArguments());
+        if ($this->isMapping()) {
+            $wrapper->except($this->mappedBox);
+        }
         $model = $wrapper->wrap($model);
         $this->onLoadHandler .= $wrapper->getOnLoadHandler();
         $this->heads->putAll($wrapper->getHeadElements());
         return $model;
     }
 
-    public function mergeHeaders($into) {
+    public function mergeHeaders($into, Url $context) {
         $parser = new Parser($into);
 
         $html = $parser->findElement('html');
@@ -118,6 +141,11 @@ class BoxCollection implements Dispatching {
         $head = $html->findChildElement('head');
 
         if ($head) {
+            if ($this->isMapping()) {
+                $baseElement = new Element('base', new Liste(array(new Attribute('href', $context->toString(), Attribute::QUOTE_DOUBLE))));
+                $head->getChildren()->insert($baseElement, 0);
+            }
+
             foreach ($this->heads as $new) {
                 if (!$this->isAlreadyIn($new, $head->getChildElements())) {
                     $head->getChildren()->append($new);
@@ -173,5 +201,27 @@ class BoxCollection implements Dispatching {
         }
 
         return $wrappedTarget->toString();
+    }
+
+    private function wrapMappedTarget(WebRequest $request) {
+        $prefixedBox = Wrapper::$PREFIX . $this->mappedBox;
+        $request->getArguments()->set(Box::$PRIMARY_TARGET_KEY, $this->mappedBox);
+        $arguments = new Map();
+        if ($request->getArguments()->has($prefixedBox)) {
+            $arguments = $request->getArguments()->get($prefixedBox);
+        }
+
+        $target = $request->getTarget()->toString();
+        $request->setTarget(new Path());
+        if ($target) {
+            $arguments->set(Box::$TARGET_KEY, $target);
+        }
+        foreach ($request->getArguments() as $key => $value) {
+            if (substr($key, 0, strlen(Wrapper::$PREFIX)) != Wrapper::$PREFIX) {
+                $arguments->set($key, $value);
+                $request->getArguments()->remove($key);
+            }
+        }
+        $request->getArguments()->set($prefixedBox, $arguments);
     }
 }

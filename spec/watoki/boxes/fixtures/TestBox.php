@@ -11,7 +11,7 @@ class TestBox extends BoxContainer {
     /** @var array|BoxCollection[] */
     private $collections = array();
 
-    protected function registerBoxes() {}
+    protected function registerBoxes(BoxCollection $boxes) {}
 
     public function add($name, $args) {
         $this->boxes->set($name, $this->box($name, $args));
@@ -25,6 +25,10 @@ class TestBox extends BoxContainer {
 
     public function addToCollection($collection, $name, $args) {
         $this->collections[$collection]->add($this->box($name, $args));
+    }
+
+    public function mapTargetsTo($box) {
+        $this->boxes->mapTargetsTo($box);
     }
 
     public function after($return, WebRequest $request) {

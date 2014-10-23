@@ -122,6 +122,23 @@ class BoxFixture extends Fixture {
         $this->request->setMethod($method);
     }
 
+    public function givenTheRequestTarget_Is($string) {
+        $this->request->setTarget(Path::fromString($string));
+    }
+
+    public function given_MapsTargetsTo($outer, $inner) {
+        $this->boxes[$outer]->mapTargetsTo($inner);
+    }
+
+    public function givenTheRequestFormatIs($string) {
+        $this->request->getFormats()->clear();
+        $this->request->getFormats()->append($string);
+    }
+
+    public function givenTheRequestHasTheHeader($string) {
+        $this->request->getHeaders()->set($string, true);
+    }
+
     public function whenIGetTheResponseFrom($path) {
         $this->response = $this->boxes[$path]->respond($this->request);
     }
