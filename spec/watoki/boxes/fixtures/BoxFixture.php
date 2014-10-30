@@ -69,13 +69,10 @@ class BoxFixture extends Fixture {
         $namespace = $this->spec->getName(false) . ($folder ? '\\' . str_replace('/', '\\', $folder) : '');
         $className = ucfirst($boxName) . WebRouter::SUFFIX;
         $code = "namespace $namespace; class $className extends \\spec\\watoki\\boxes\\fixtures\\TestBox {
-            $body
-            public function getName() {
-                return '$boxName';
-            }
-            public function getDirectory() {
+            function getMockDirectory() {
                 return '$folder';
             }
+            $body
         }";
         eval($code);
 

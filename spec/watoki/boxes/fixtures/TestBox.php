@@ -5,13 +5,31 @@ use watoki\boxes\BoxCollection;
 use watoki\boxes\BoxContainer;
 use watoki\boxes\Wrapper;
 use watoki\curir\delivery\WebRequest;
+use watoki\stores\file\raw\RawFileStore;
 
 class TestBox extends BoxContainer {
 
     /** @var array|BoxCollection[] */
     private $collections = array();
 
-    protected function registerBoxes(BoxCollection $boxes) {}
+    /**
+     * @throws \Exception
+     * @return string
+     */
+    protected function getMockDirectory() {
+        throw new \Exception('Should be overwritten');
+    }
+
+    protected function createRouter() {
+        return $this->rigRouter(parent::createRouter());
+    }
+
+    protected function createBoxRouter() {
+        return $this->rigRouter(parent::createBoxRouter());
+    }
+
+    protected function registerBoxes(BoxCollection $boxes) {
+    }
 
     public function add($name, $args) {
         $this->boxes->set($name, $this->box($name, $args));
@@ -56,5 +74,15 @@ class TestBox extends BoxContainer {
         }
         $code = 'return "' . str_replace('"', '\"', $template) . '";';
         return eval($code);
+    }
+
+    private function rigRouter($router) {
+        $reflection = new \ReflectionClass($router);
+        $store = $reflection->getProperty('store');
+        $store->setAccessible(true);
+        $store->setValue($router, $this->factory->getInstance(RawFileStore::$CLASS, array(
+            "rootDirectory" => $this->getMockDirectory()
+        )));
+        return $router;
     }
 }

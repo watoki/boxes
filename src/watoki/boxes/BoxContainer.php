@@ -41,7 +41,7 @@ abstract class BoxContainer extends Container {
     protected function createBoxRouter() {
         $class = new \ReflectionClass($this);
         $namespace = $class->getNamespaceName();
-        $directory = $this->getDirectory();
+        $directory = dirname($class->getFileName());
 
         return new WebRouter($this->factory, $directory, $namespace);
     }
