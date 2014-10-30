@@ -29,7 +29,7 @@ class WrapRedirectsTest extends Specification {
         $this->box->givenTheBoxContainer('o');
         $this->box->givenTheBoxContainer_WithBody('a', '
             public function doGet() {
-                return \watoki\curir\responder\Redirecter::fromString("../b?foo=baz");
+                return \watoki\curir\responder\Redirecter::fromString("b?foo=baz");
             }');
         $this->box->givenTheBoxContainer('b');
         $this->box->givenTheBoxContainer('c');
@@ -66,7 +66,7 @@ class WrapRedirectsTest extends Specification {
         $this->box->givenTheBoxContainer('o');
         $this->box->givenTheBoxContainer_WithBody('a', '
             public function doGet() {
-                return \watoki\curir\responder\Redirecter::fromString("..?foo=bar");
+                return \watoki\curir\responder\Redirecter::fromString("?foo=bar");
             }');
 
         $this->box->given_Contains('o', 'a');
@@ -74,6 +74,6 @@ class WrapRedirectsTest extends Specification {
         $this->box->givenTheContextIs('http://foo');
 
         $this->box->whenIGetTheResponseFrom('o');
-        $this->box->thenTheResponseShouldBeARedirectionTo('http://foo?_a[foo]=bar&_=a');
+        $this->box->thenTheResponseShouldBeARedirectionTo('http://foo?_a[!]=a&_a[foo]=bar&_=a');
     }
 } 
