@@ -60,8 +60,7 @@ abstract class BoxContainer extends Container {
      * @return mixed|\watoki\curir\delivery\WebResponse
      */
     public function respond(Request $request) {
-        if ($this->isMapping($request)
-        ) {
+        if ($this->isMapping($request)) {
             $request->getHeaders()->set(self::HEADER_NO_BOXING, true);
             $target = new ObjectTarget($request, $this, $this->factory);
             return $target->respond();
