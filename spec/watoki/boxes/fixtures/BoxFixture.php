@@ -4,8 +4,8 @@ namespace spec\watoki\boxes\fixtures;
 use watoki\collections\Map;
 use watoki\curir\delivery\WebRequest;
 use watoki\curir\delivery\WebResponse;
-use watoki\curir\protocol\Url;
 use watoki\curir\delivery\WebRouter;
+use watoki\curir\protocol\Url;
 use watoki\deli\Path;
 use watoki\factory\Factory;
 use watoki\factory\providers\CallbackProvider;
@@ -14,7 +14,6 @@ use watoki\stores\adapter\FileStoreAdapter;
 use watoki\stores\file\raw\File;
 use watoki\stores\file\raw\RawFileStore;
 use watoki\stores\memory\MemoryStore;
-use watoki\stores\memory\MemorySerializerRegistry;
 
 class BoxFixture extends Fixture {
 
@@ -39,7 +38,7 @@ class BoxFixture extends Fixture {
         $this->request = new WebRequest(Url::fromString(''), new Path(), 'get');
         $this->factory = new Factory();
 
-        $this->store = new MemoryStore(File::$CLASS, new MemorySerializerRegistry());
+        $this->store = new MemoryStore();
         /** @noinspection PhpUnusedParameterInspection */
         $this->factory->setProvider(RawFileStore::$CLASS, new CallbackProvider(function ($class, $args) {
             return new FileStoreAdapter($this->store, $args['rootDirectory']);
