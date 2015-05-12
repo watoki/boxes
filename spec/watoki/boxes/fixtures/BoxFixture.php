@@ -81,7 +81,7 @@ class BoxFixture extends Fixture {
         $fullClassName = $namespace . '\\' . $className;
         $this->boxes[$boxName] = new $fullClassName($this->factory);
 
-        $this->factory->setSingleton($fullClassName, $this->boxes[$boxName]);
+        $this->factory->setSingleton($this->boxes[$boxName], $fullClassName);
     }
 
     public function given_Contains($outer, $inner) {
